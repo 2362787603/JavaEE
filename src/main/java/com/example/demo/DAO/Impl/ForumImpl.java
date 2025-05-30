@@ -8,7 +8,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
-// Add the missing import statement
+
 import java.sql.Statement;
 
 @Repository
@@ -43,6 +43,7 @@ public class ForumImpl implements ForumDao {
         int rowsAffected = jdbcTemplate.update(sql, id);
         return rowsAffected > 0;
     }
+
     @Override
     public boolean updateForum(Integer id, String name, String introduction) {
         String sql = "UPDATE forums SET name = ?, introduction = ? WHERE id = ?";
@@ -62,5 +63,25 @@ public class ForumImpl implements ForumDao {
         String sql = "UPDATE forums SET introduction = ? WHERE id = ?";
         int rowsAffected = jdbcTemplate.update(sql, introduction, id);
         return rowsAffected > 0;
+    }
+
+    @Override
+    public boolean increaseFollowCount(Integer id) {
+        String sql = "UPDATE forums SET follow_count = follow_count + 1 WHERE id = ?";
+        int rowsAffected = jdbcTemplate.update(sql, id);
+        return rowsAffected > 0;
+    }
+
+    @Override
+    public boolean decreaseFollowCount(Integer id) {
+        String sql = "UPDATE forums SET follow_count = follow_count - 1 WHERE id = ? AND follow_count > 0";
+        int rowsAffected = jdbcTemplate.update(sql, id);
+        return rowsAffected > 0;
+    }
+
+    @Override
+    public Integer getFollowCount(Integer id) {
+        String sql = "SELECT follow_count FROM forums WHERE id = ?";
+        return jdbcTemplate.queryForObject(sql, Integer.class, id);
     }
 }

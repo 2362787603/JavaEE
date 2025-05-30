@@ -1,7 +1,10 @@
 package com.example.demo.Controller;
 
+import com.example.demo.DAO.Impl.ForumFollowImpl;
 import com.example.demo.DAO.Impl.ForumImpl;
 import com.example.demo.Entity.Forum;
+import com.example.demo.Entity.ForumFollow;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +23,9 @@ public class ForumController {
 
     @Autowired
     private ForumImpl forumImpl;
+
+    @Autowired
+    private ForumFollowImpl forumFollowImpl;
 
     @PostMapping("/create")
     public ResponseEntity<Map<String, Object>> createForum(@RequestBody Map<String, Object> map) {
@@ -185,6 +191,92 @@ public class ForumController {
         } catch (Exception e) {
             logger.error("论坛简介修改出错: {}", e.getMessage());
             response.put("message", "论坛简介修改过程中发生错误");
+            response.put("success", false);
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+    /**
+     * 查看论坛关注计数
+     * @param id 论坛 ID
+     * @return 响应结果
+     */
+    @GetMapping("/{id}/followCount")
+    public ResponseEntity<Map<String, Object>> getFollowCount(@PathVariable Integer id) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            Integer count = forumImpl.getFollowCount(id);
+            if (count != null) {
+                response.put("message", "获取关注计数成功");
+                response.put("success", true);
+                response.put("followCount", count);
+                return new ResponseEntity<>(response, HttpStatus.OK);
+            } else {
+                response.put("message", "获取关注计数失败，未找到该论坛");
+                response.put("success", false);
+                return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception e) {
+            logger.error("查看论坛关注计数出错: {}", e.getMessage());
+            response.put("message", "查看论坛关注计数过程中发生错误");
+            response.put("success", false);
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PostMapping("/follow")
+    public ResponseEntity<Map<String, Object>> addFollow(@RequestBody ForumFollow follow) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            Integer followId = forumFollowImpl.addFollow(follow);
+            if (followId != null) {
+                if (forumImpl.increaseFollowCount(follow.getForumId())) {
+                    response.put("message", "关注成功，关注计数已更新");
+                    response.put("success", true);
+                    response.put("followId", followId);
+                    return new ResponseEntity<>(response, HttpStatus.OK);
+                } else {
+                    response.put("message", "关注成功，但关注计数更新失败");
+                    response.put("success", false);
+                    response.put("followId", followId);
+                    return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+            } else {
+                response.put("message", "关注失败");
+                response.put("success", false);
+                return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        } catch (Exception e) {
+            logger.error("添加关注出错: {}", e.getMessage());
+            response.put("message", "添加关注过程中发生错误");
+            response.put("success", false);
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @DeleteMapping("/follow")
+    public ResponseEntity<Map<String, Object>> removeFollow(@RequestBody ForumFollow follow) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            if (forumFollowImpl.removeFollow(follow)) {
+                if (forumImpl.decreaseFollowCount(follow.getForumId())) {
+                    response.put("message", "取消关注成功，关注计数已更新");
+                    response.put("success", true);
+                    return new ResponseEntity<>(response, HttpStatus.OK);
+                } else {
+                    response.put("message", "取消关注成功，但关注计数更新失败");
+                    response.put("success", false);
+                    return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+            } else {
+                response.put("message", "取消关注失败");
+                response.put("success", false);
+                return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        } catch (Exception e) {
+            logger.error("取消关注出错: {}", e.getMessage());
+            response.put("message", "取消关注过程中发生错误");
             response.put("success", false);
             return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }

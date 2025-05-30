@@ -10,4 +10,5 @@ public class Forum {
     private String userID;
     private String name;
     private String introduction;
+    private Integer followCount; // 新增关注计数字段
 }
