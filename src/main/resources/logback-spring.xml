@@ -7,9 +7,8 @@
             <maxHistory>30</maxHistory>
         </rollingPolicy>
         <encoder>
-            <!-- 设置编码为 UTF-8 -->
-            <charset>UTF-8</charset> 
-            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <!-- 精简日志输出格式 -->
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level - %msg%n</pattern>
         </encoder>
     </appender>
 
@@ -21,9 +20,8 @@
             <maxHistory>30</maxHistory>
         </rollingPolicy>
         <encoder>
-            <!-- 设置编码为 UTF-8 -->
-            <charset>UTF-8</charset> 
-            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <!-- 精简日志输出格式 -->
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level - %msg%n</pattern>
         </encoder>
     </appender>
 
@@ -37,8 +35,22 @@
         <appender-ref ref="FORUM_FILE" />
     </logger>
 
+    <!-- 为 DemoApplication 添加日志记录器 -->
+    <logger name="com.example.demo.DemoApplication" level="INFO" additivity="false">
+        <!-- 可以选择关联已有的 appender，这里选择控制台输出 -->
+        <appender-ref ref="CONSOLE" /> 
+    </logger>
+
     <!-- 根日志记录器 -->
     <root level="INFO">
         <appender-ref ref="CONSOLE" />
     </root>
+
+    <!-- 若 CONSOLE appender 不存在，添加它 -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <!-- 精简日志输出格式 -->
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level - %msg%n</pattern>
+        </encoder>
+    </appender>
 </configuration>

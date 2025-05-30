@@ -189,13 +189,15 @@ public class UserController {
 
     // 修改用户名
     @PutMapping("/{id}/username")
-    public ResponseEntity<Map<String, Object>> updateUsername(@PathVariable String id, @RequestBody String username) {
+    public ResponseEntity<Map<String, Object>> updateUsername(@PathVariable String id, @RequestBody Map<String, Object> map) {
         Map<String, Object> response = new HashMap<>();
         try {
             List<User> users = userImpl.findById(id);
             if (!users.isEmpty()) {
                 User user = users.get(0);
-                user.setUsername(username);
+                if (map.containsKey("username")) {
+                    user.setUsername((String) map.get("username"));
+                }
                 if (userImpl.updateById(user)) {
                     response.put("message", "用户名修改成功");
                     response.put("success", true);
@@ -220,13 +222,15 @@ public class UserController {
 
     // 修改密码
     @PutMapping("/{id}/password")
-    public ResponseEntity<Map<String, Object>> updatePassword(@PathVariable String id, @RequestBody String password) {
+    public ResponseEntity<Map<String, Object>> updatePassword(@PathVariable String id, @RequestBody Map<String, Object> map) {
         Map<String, Object> response = new HashMap<>();
         try {
             List<User> users = userImpl.findById(id);
             if (!users.isEmpty()) {
                 User user = users.get(0);
-                user.setPassword(password);
+                if (map.containsKey("password")) {
+                    user.setPassword((String) map.get("password"));
+                }
                 if (userImpl.updateById(user)) {
                     response.put("message", "密码修改成功");
                     response.put("success", true);
@@ -251,13 +255,26 @@ public class UserController {
 
     // 修改等级
     @PutMapping("/{id}/level")
-    public ResponseEntity<Map<String, Object>> updateLevel(@PathVariable String id, @RequestBody int level) {
+    public ResponseEntity<Map<String, Object>> updateLevel(@PathVariable String id, @RequestBody Map<String, Object> map) {
         Map<String, Object> response = new HashMap<>();
         try {
             List<User> users = userImpl.findById(id);
             if (!users.isEmpty()) {
                 User user = users.get(0);
-                user.setLevel(level);
+                if (map.containsKey("level")) {
+                    Object levelObj = map.get("level");
+                    if (levelObj instanceof Integer) {
+                        user.setLevel((Integer) levelObj);
+                    } else if (levelObj instanceof String) {
+                        try {
+                            user.setLevel(Integer.parseInt((String) levelObj));
+                        } catch (NumberFormatException e) {
+                            response.put("message", "传入的等级不是有效的整数");
+                            response.put("success", false);
+                            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+                        }
+                    }
+                }
                 if (userImpl.updateById(user)) {
                     response.put("message", "等级修改成功");
                     response.put("success", true);
@@ -282,13 +299,15 @@ public class UserController {
 
     // 修改邮箱
     @PutMapping("/{id}/email")
-    public ResponseEntity<Map<String, Object>> updateEmail(@PathVariable String id, @RequestBody String email) {
+    public ResponseEntity<Map<String, Object>> updateEmail(@PathVariable String id, @RequestBody Map<String, Object> map) {
         Map<String, Object> response = new HashMap<>();
         try {
             List<User> users = userImpl.findById(id);
             if (!users.isEmpty()) {
                 User user = users.get(0);
-                user.setEmail(email);
+                if (map.containsKey("email")) {
+                    user.setEmail((String) map.get("email"));
+                }
                 if (userImpl.updateById(user)) {
                     response.put("message", "邮箱修改成功");
                     response.put("success", true);
@@ -313,13 +332,26 @@ public class UserController {
 
     // 修改管理员状态
     @PutMapping("/{id}/admin")
-    public ResponseEntity<Map<String, Object>> updateAdmin(@PathVariable String id, @RequestBody int admin) {
+    public ResponseEntity<Map<String, Object>> updateAdmin(@PathVariable String id, @RequestBody Map<String, Object> map) {
         Map<String, Object> response = new HashMap<>();
         try {
             List<User> users = userImpl.findById(id);
             if (!users.isEmpty()) {
                 User user = users.get(0);
-                user.setAdmin(admin);
+                if (map.containsKey("admin")) {
+                    Object adminObj = map.get("admin");
+                    if (adminObj instanceof Integer) {
+                        user.setAdmin((Integer) adminObj);
+                    } else if (adminObj instanceof String) {
+                        try {
+                            user.setAdmin(Integer.parseInt((String) adminObj));
+                        } catch (NumberFormatException e) {
+                            response.put("message", "传入的管理员状态不是有效的整数");
+                            response.put("success", false);
+                            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+                        }
+                    }
+                }
                 if (userImpl.updateById(user)) {
                     response.put("message", "管理员状态修改成功");
                     response.put("success", true);
@@ -341,6 +373,7 @@ public class UserController {
             return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
     // 添加头像
     @PostMapping("/{id}/avatar")
     public ResponseEntity<Map<String, Object>> addAvatar(@PathVariable String id, @RequestParam("file") MultipartFile file) {

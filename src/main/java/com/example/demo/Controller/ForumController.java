@@ -248,10 +248,15 @@ public class ForumController {
     }
 
     @PostMapping("/follow")
-    public ResponseEntity<Map<String, Object>> addFollow(@RequestBody ForumFollow follow) {
-        logger.info("收到添加关注请求，用户ID: {}, 论坛ID: {}", follow.getUserId(), follow.getForumId());
+    public ResponseEntity<Map<String, Object>> addFollow(@RequestBody Map<String, Object> map) {
+        String userId = (String) map.get("userId");
+        Integer forumId = (Integer) map.get("forumId");
+        logger.info("收到添加关注请求，用户ID: {}, 论坛ID: {}", userId, forumId);
         Map<String, Object> response = new HashMap<>();
         try {
+            ForumFollow follow = new ForumFollow();
+            follow.setUserId(userId);
+            follow.setForumId(forumId);
             Integer followId = forumFollowImpl.addFollow(follow);
             if (followId != null) {
                 if (forumImpl.increaseFollowCount(follow.getForumId())) {
@@ -274,7 +279,7 @@ public class ForumController {
                 return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
             }
         } catch (Exception e) {
-            logger.error("添加关注出错，用户ID: {}, 论坛ID: {}, 错误信息: {}", follow.getUserId(), follow.getForumId(), e.getMessage(), e);
+            logger.error("添加关注出错，用户ID: {}, 论坛ID: {}, 错误信息: {}", userId, forumId, e.getMessage(), e);
             response.put("message", "添加关注过程中发生错误");
             response.put("success", false);
             return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -282,10 +287,15 @@ public class ForumController {
     }
 
     @DeleteMapping("/follow")
-    public ResponseEntity<Map<String, Object>> removeFollow(@RequestBody ForumFollow follow) {
-        logger.info("收到取消关注请求，用户ID: {}, 论坛ID: {}", follow.getUserId(), follow.getForumId());
+    public ResponseEntity<Map<String, Object>> removeFollow(@RequestBody Map<String, Object> map) {
+        String userId = (String) map.get("userId");
+        Integer forumId = (Integer) map.get("forumId");
+        logger.info("收到取消关注请求，用户ID: {}, 论坛ID: {}", userId, forumId);
         Map<String, Object> response = new HashMap<>();
         try {
+            ForumFollow follow = new ForumFollow();
+            follow.setUserId(userId);
+            follow.setForumId(forumId);
             if (forumFollowImpl.removeFollow(follow)) {
                 if (forumImpl.decreaseFollowCount(follow.getForumId())) {
                     response.put("message", "取消关注成功，关注计数已更新");
@@ -305,7 +315,7 @@ public class ForumController {
                 return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
             }
         } catch (Exception e) {
-            logger.error("取消关注出错，用户ID: {}, 论坛ID: {}, 错误信息: {}", follow.getUserId(), follow.getForumId(), e.getMessage(), e);
+            logger.error("取消关注出错，用户ID: {}, 论坛ID: {}, 错误信息: {}", userId, forumId, e.getMessage(), e);
             response.put("message", "取消关注过程中发生错误");
             response.put("success", false);
             return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
