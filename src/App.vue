@@ -1,26 +1,38 @@
+
 <template>
-  <img alt="Vue logo" src="./assets/logo.png">
-  <HelloWorld msg="Welcome to Your Vue.js App"/>
+  <el-container class="container">
+    <!-- 左侧导航栏 -->
+    <!--<el-aside class="aside">
+      <Sidebar/>
+    </el-aside>-->
+    <el-main class="main">
+      <RouterView/>
+    </el-main>
+  </el-container>
+  <!-- <HomeView /> -->
 </template>
 
-<script>
-import HelloWorld from './components/HelloWorld.vue'
-
-export default {
-  name: 'App',
-  components: {
-    HelloWorld
-  }
-}
+<script setup>
+import {RouterView} from 'vue-router'
+//import Sidebar from './components/Sidebar.vue';
 </script>
 
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+
+<style scoped>
+.container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
+
+.aside {
+  width: 64px;
+  margin: 0;
+  padding: 0;
+  z-index: 15;
+}
+.main {
+  padding: 0;
 }
 </style>

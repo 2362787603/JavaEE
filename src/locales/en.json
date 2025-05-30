@@ -1,0 +1,53 @@
+{
+    "mainPage": {
+        "followLabel": "Follow",
+        "exploreLabel": "Explore",
+        "paperCounts": "Papers:",
+        "citation": "citations:"
+    },
+    "mustReadView":{
+        "title": "Must Read Papers",
+        "description": "Must-read papers help you understand academic papers in a specific field, institution, journal, or conference.",
+        "all":"All",
+        "topic":"Topics",
+        "lab":"Labs",
+        "journal":"Journals",
+        "conference":"Conferences"
+    },
+    "searchBar":{
+        "title": "AI Reads Science"
+    },
+    "userProfile":{
+        "login": "Login now"
+    },
+    "sideBar":{
+        "search": "Search",
+        "analysis": "Analysis",
+        "scientific": "Scitific Research",
+        "ranking": "Rankings",
+        "mustRead": "Must Reading",
+        "journal": "Journal & Conference"
+    },
+    "search": {
+      "placeholder": "Search related must-read papers",
+      "fieldQuery": "Field Query"
+    },
+    "researcherContent":{
+        "followButton": "Follow",
+        "institution":  "Institution",
+        "field": "Research Field"
+    },
+    "personInfo":{
+        "manage":"Profile Management",
+        "academic": "Academic Profile",
+        "user": "User Information",
+        "follow": "My Following",
+        "collection": "Paper Collections",
+        "browse": "Browse History"
+    },
+    "buttons": {
+      "share": "Share",
+      "favorite": "Favorite"
+    }
+  }
+  
