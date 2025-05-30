@@ -29,15 +29,19 @@ public class UserImpl implements UserDao {
 
     @Override
     public boolean addUser(User user) {
-        String sql = "INSERT INTO users (UserId, Username, Password, Level, Email, ImageId, Admin) VALUES (?, ?, ?, ?, ?, ?, ?)";
-        int rowsAffected = jdbcTemplate.update(sql, user.getUserId(), user.getUsername(), user.getPassword(), user.getLevel(), user.getEmail(), user.getImageId(), user.getAdmin());
+        // 删除 ImageId 字段
+        String sql = "INSERT INTO users (UserId, Username, Password, Level, Email, Admin, avatarPath) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        // 删除 user.getImageId()
+        int rowsAffected = jdbcTemplate.update(sql, user.getUserId(), user.getUsername(), user.getPassword(), user.getLevel(), user.getEmail(), user.getAdmin(), user.getAvatarPath());
         return rowsAffected > 0;
     }
 
     @Override
     public boolean updateById(User user) {
-        String sql = "UPDATE users SET Username = ?, Password = ?, Level = ?, Email = ?, ImageId = ?, Admin = ? WHERE UserId = ?";
-        int rowsAffected = jdbcTemplate.update(sql, user.getUsername(), user.getPassword(), user.getLevel(), user.getEmail(), user.getImageId(), user.getAdmin(), user.getUserId());
+        // 删除 ImageId 字段
+        String sql = "UPDATE users SET Username = ?, Password = ?, Level = ?, Email = ?, Admin = ?, avatarPath = ? WHERE UserId = ?";
+        // 删除 user.getImageId()
+        int rowsAffected = jdbcTemplate.update(sql, user.getUsername(), user.getPassword(), user.getLevel(), user.getEmail(), user.getAdmin(), user.getAvatarPath(), user.getUserId());
         return rowsAffected > 0;
     }
 
@@ -49,8 +53,23 @@ public class UserImpl implements UserDao {
     }
 
     public User login(String userid, String password) {
-        String sql = "SELECT * FROM users WHERE Userid = ? AND Password = ?";
+        // 删除 ImageId 字段
+        String sql = "SELECT UserId, Username, Password, Level, Email, Admin, avatarPath FROM users WHERE UserId = ? AND Password = ?";
         List<User> users = jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(User.class), userid, password);
         return users.isEmpty() ? null : users.get(0);
+    }
+
+    @Override
+    public User findUserById(String id) {
+        // 删除 ImageId 字段
+        List<User> users = findById(id);
+        return users.isEmpty() ? null : users.get(0);
+    }
+
+    @Override
+    public boolean updateAvatarPath(String userId, String avatarPath) {
+        String sql = "UPDATE users SET avatarPath = ? WHERE UserId = ?";
+        int rowsAffected = jdbcTemplate.update(sql, avatarPath, userId);
+        return rowsAffected > 0;
     }
 }

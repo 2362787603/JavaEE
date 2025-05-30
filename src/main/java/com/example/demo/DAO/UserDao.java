@@ -8,4 +8,7 @@ public interface UserDao {
     boolean addUser(User user);
     boolean updateById(User user);
     boolean deleteById(String Id);
+    User findUserById(String id);
+    // 添加更新头像路径的方法
+    boolean updateAvatarPath(String userId, String avatarPath);
 }
