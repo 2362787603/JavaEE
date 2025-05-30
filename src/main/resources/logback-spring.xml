@@ -42,7 +42,7 @@
     </logger>
 
     <!-- 根日志记录器 -->
-    <root level="WARN"> <!-- 将级别从 INFO 调整为 WARN -->
+    <root level="INFO"> <!-- 将级别从 INFO 调整为 WARN -->
         <appender-ref ref="CONSOLE" />
     </root>
 
