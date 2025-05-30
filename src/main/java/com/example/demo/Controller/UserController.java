@@ -39,6 +39,7 @@ public class UserController {
     // 已有注册接口
     @PostMapping("/register")
     public ResponseEntity<Map<String, Object>> register(@RequestBody Map<String, Object> map) {
+        logger.info("收到用户注册请求，请求参数: {}", map);
         Map<String, Object> response = new HashMap<>();
         User user = new User();
         if (map.containsKey("userid")) {
@@ -54,15 +55,16 @@ public class UserController {
             if (userImpl.addUser(user)) {
                 response.put("message", "注册成功");
                 response.put("success", true);
-                // 不返回用户对象，防止密码泄露
+                logger.info("用户 {} 注册成功", user.getUserId());
                 return new ResponseEntity<>(response, HttpStatus.OK);
             } else {
                 response.put("message", "注册失败");
                 response.put("success", false);
+                logger.warn("用户 {} 注册失败", user.getUserId());
                 return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
             }
         } catch (Exception e) {
-            logger.error("用户注册出错: {}", e.getMessage());
+            logger.error("用户注册出错，请求参数: {}, 错误信息: {}", map, e.getMessage(), e);
             response.put("message", "注册过程中发生错误");
             response.put("success", false);
             return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -72,6 +74,7 @@ public class UserController {
     // 已有登录接口
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, Object> map) {
+        logger.info("收到用户登录请求，请求参数: {}", map);
         Map<String, Object> response = new HashMap<>();
         try {
             String userid = (String) map.get("userid");
@@ -89,14 +92,16 @@ public class UserController {
                 response.put("message", "登录成功");
                 response.put("success", true);
                 response.put("user", userInfo);
+                logger.info("用户 {} 登录成功", userid);
                 return new ResponseEntity<>(response, HttpStatus.OK);
             } else {
                 response.put("message", "用户名或密码错误");
                 response.put("success", false);
+                logger.warn("用户 {} 登录失败，用户名或密码错误", userid);
                 return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
             }
         } catch (Exception e) {
-            logger.error("用户登录出错: {}", e.getMessage());
+            logger.error("用户登录出错，请求参数: {}, 错误信息: {}", map, e.getMessage(), e);
             response.put("message", "登录过程中发生错误");
             response.put("success", false);
             return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
