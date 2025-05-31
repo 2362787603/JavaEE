@@ -1,8 +1,8 @@
--- MySQL dump 10.13  Distrib 8.0.19, for Win64 (x86_64)
+-- MySQL dump 10.13  Distrib 8.0.36, for Win64 (x86_64)
 --
 -- Host: localhost    Database: forum
 -- ------------------------------------------------------
--- Server version	8.0.39
+-- Server version	8.0.36
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -14,6 +14,34 @@
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `comment`
+--
+
+DROP TABLE IF EXISTS `comment`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `comment` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` varchar(64) NOT NULL,
+  `post_id` int NOT NULL,
+  `comment_id` int NOT NULL DEFAULT '0',
+  `comment_content` text,
+  `like_number` int DEFAULT '0',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `comment`
+--
+
+LOCK TABLES `comment` WRITE;
+/*!40000 ALTER TABLE `comment` DISABLE KEYS */;
+INSERT INTO `comment` VALUES (1,'1',1,0,'这是一条测试评论',1),(2,'1',1,1,'test',0),(3,'1',1,1,'！！！！！',0);
+/*!40000 ALTER TABLE `comment` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `forum_follow`
@@ -96,6 +124,35 @@ INSERT INTO `notifications` VALUES (1,'14842714676','圆发业有下式。律过
 UNLOCK TABLES;
 
 --
+-- Table structure for table `post`
+--
+
+DROP TABLE IF EXISTS `post`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `post` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` varchar(64) NOT NULL,
+  `forum_id` int NOT NULL,
+  `title` varchar(200) NOT NULL,
+  `content` text,
+  `like_number` int DEFAULT '0',
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `post`
+--
+
+LOCK TABLES `post` WRITE;
+/*!40000 ALTER TABLE `post` DISABLE KEYS */;
+INSERT INTO `post` VALUES (1,'1',1,'root的第一帖','大家好，这是root用户的测试帖子。',1,'2025-05-31 22:14:07'),(2,'1',1,'test','test',0,'2025-05-31 22:27:20'),(3,'1',1,'root的第一帖','大家好，这是root用户的测试帖子。',1,'2025-05-31 22:41:05'),(5,'1',2,'tt','tt',0,'2025-05-31 22:49:23');
+/*!40000 ALTER TABLE `post` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `users`
 --
 
@@ -120,13 +177,9 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES ('13692916472','negtue_ire','rIPNqUr88mQzMfm',0,NULL,0,NULL),('14842714676','k5qkfk_hkg','OK48HLGEytilxyu',3,'freg6n_sl075@163.com',1,'uploads\\avatars\\14842714676_1748588860140_微信图片_20250217204130.jpg'),('15875713043','o97kgs76','x5koDE4hOpkRyx7',0,NULL,0,NULL);
+INSERT INTO `users` VALUES ('1','root','root',3,NULL,1,NULL),('13692916472','negtue_ire','rIPNqUr88mQzMfm',0,NULL,0,NULL),('14842714676','k5qkfk_hkg','OK48HLGEytilxyu',3,'freg6n_sl075@163.com',1,'uploads\\avatars\\14842714676_1748588860140_微信图片_20250217204130.jpg'),('15875713043','o97kgs76','x5koDE4hOpkRyx7',0,NULL,0,NULL);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
-
---
--- Dumping routines for database 'forum'
---
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -137,4 +190,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-05-30 23:16:53
+-- Dump completed on 2025-06-01  1:01:12
