@@ -99,7 +99,7 @@ public class CommentController {
     public ResponseEntity<Map<String, Object>> likeComment(@RequestBody Map<String, Object> map) {
         Map<String, Object> resp = new HashMap<>();
         try {
-            Integer commentID = (Integer) map.get("commentID");
+            Integer commentID = (Integer) map.get("ID");
             int rows = commentDao.likeComment(commentID);
             if (rows > 0) {
                 resp.put("message", "点赞成功");

@@ -25,9 +25,13 @@ public class PostController {
 
 
     @GetMapping("/test-db")
-    public String testDb() {
-        return postDao.testConnection();
+    public Map<String, Object> testDb() {
+        Map<String, Object> resp = new HashMap<>();
+        resp.put("message", postDao.testConnection());
+        resp.put("success", true);
+        return resp;
     }
+
 
 
     /**
