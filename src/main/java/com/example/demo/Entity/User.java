@@ -11,10 +11,10 @@ import lombok.NoArgsConstructor;
 public class User {
     private String UserId;
     private String Username;
-	private String Password;
+    private String Password;
     private int Level=0;
-    
     private String Email;
-    private String ImageId;
+    // 删除 imageId 字段
     private int Admin;
+    private String avatarPath; // 新增头像路径字段
 }
