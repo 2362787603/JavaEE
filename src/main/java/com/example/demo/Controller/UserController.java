@@ -58,7 +58,7 @@ public class UserController {
                 logger.info("用户 {} 注册成功", user.getUserId());
                 return new ResponseEntity<>(response, HttpStatus.OK);
             } else {
-                response.put("message", "注册失败");
+                response.put("message", "注册失败,手机号已存在");
                 response.put("success", false);
                 logger.warn("用户 {} 注册失败", user.getUserId());
                 return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);

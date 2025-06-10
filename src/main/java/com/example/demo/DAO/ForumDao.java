@@ -2,9 +2,12 @@ package com.example.demo.DAO;
 
 import com.example.demo.Entity.Forum;
 
+import java.util.List;
+
 public interface ForumDao {
     Integer createForum(String userID, String name, String introduction);
     Forum searchForum(Integer id);
+    List<Forum> getAllForum();
     // 添加删除方法
     boolean deleteForum(Integer id);
     // 添加修改方法

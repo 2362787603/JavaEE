@@ -12,7 +12,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -63,6 +65,34 @@ public class ForumController {
             return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @PostMapping("getAllForumByName")
+    public ResponseEntity<Map<String, Object>> getAllForumByName(@RequestBody Map<String, Object> map) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            String sqlName = "";
+            if (map.containsKey("searchName")) {
+                sqlName = (String) map.get("searchName");
+            }
+            List<Forum> forumList = forumImpl.getAllForum();
+            List<Forum> returnForumList = new ArrayList<>();
+            for(Forum forum:forumList){
+                if(forum.getName().contains(sqlName)) returnForumList.add(forum);
+            }
+            response.put("message", "论坛获取成功");
+            response.put("success", true);
+            response.put("forumList", returnForumList);
+            logger.info("根据名字检索论坛成功:{}", returnForumList);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            logger.error("论坛创建出错，请求参数: {}, 错误信息: {}", map, e.getMessage(), e);
+            response.put("message", "论坛创建过程中发生错误");
+            response.put("success", false);
+            response.put("forumList",null);
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 
     @GetMapping("/search/{id}")
     public ResponseEntity<Map<String, Object>> searchForum(@PathVariable Integer id) {
