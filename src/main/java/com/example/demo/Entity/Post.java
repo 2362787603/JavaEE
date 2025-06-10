@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor  // 无参构造器
 public class Post {
     private Integer Id;
-    private Integer UserID;
+    private String UserID;
     private Integer ForumID;
     private String  Title;
     private String  Content;

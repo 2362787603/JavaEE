@@ -19,7 +19,8 @@
         </div>
       </div>
       <div class="follow">
-        <button class="follow-button">关注</button>
+        <button class="follow-button" @click="toggleFollow">
+          {{ isFollowing ? '取消关注' : '关注' }}</button>
       </div>
     </div>
     <div class="content-container">
@@ -62,10 +63,11 @@
 </template>
 
 <script name='HomePost' setup>
-import { ref, computed, defineProps, defineEmits } from 'vue';
+import { ref, computed, defineProps, defineEmits,onMounted } from 'vue';
 import contentBlock from './contentBlock.vue';
 // import pictureBlock1 from './pictureBlock1.vue';
 import '@fortawesome/fontawesome-free/css/all.min.css';
+import axios from 'axios';
 
 const props = defineProps({
   post: {
@@ -75,8 +77,10 @@ const props = defineProps({
   HasUserLiked: {
     type: Boolean,
     default: () => false
-  }
+  },
 });
+// 定义响应式变量来存储关注状态
+const isFollowing = ref(false);
 
 // 定义 emits 来触发自定义事件
 const emit = defineEmits(['update-like']);
@@ -98,6 +102,54 @@ const handleLike = () => {
 const getUserLike = computed(() => {
   return isUserLike.value ? 'like-icon' : 'not-like-icon';
 });
+const checkFollowStatus = async () => {
+  try {
+    console.log(props.post);
+    const response = await axios.get(`http://localhost:8080/forum/isUserFollow`, {
+      params: {
+        userId: props.post.userID,
+        forum_id: props.post.forumID
+      }
+    });
+    if (response.data.success) {
+      isFollowing.value = response.data.isFollowed;
+    }
+  } catch (error) {
+    console.error('检查关注状态出错:', error);
+  }
+};
+
+// 切换关注状态
+const toggleFollow = async () => {
+  try {
+    if (isFollowing.value) {
+      // 取消关注
+      const response = await axios.delete(`http://localhost:8080/forum/follow`, {
+        data: {
+          userId: props.post.userID,
+          forumId: props.post.forumID
+        }
+      });
+      if (response.data.success) {
+        isFollowing.value = false;
+      }
+    } else {
+      // 添加关注
+      const response = await axios.post(`http://localhost:8080/forum/follow`, {
+        userId: props.post.userID,
+        forumId: props.post.forumID
+      });
+      if (response.data.success) {
+        isFollowing.value = true;
+      }
+    }
+    location.reload();
+  } catch (error) {
+    console.error('切换关注状态出错:', error);
+  }
+};
+// 组件挂载时检查关注状态
+onMounted(checkFollowStatus);
 </script>
 
 <style scoped>
