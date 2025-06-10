@@ -81,22 +81,6 @@ public class ForumImpl implements ForumDao {
         }
     }
 
-    @Override
-    public List<Forum> getAllForum(){
-        String sql = "SELECT f.*, COUNT(p.id) as post_count " +
-                     "FROM forums f " +
-                     "LEFT JOIN post p ON f.id = p.forum_id " +
-                     "GROUP BY f.id";
-        forumLogger.info("开始查询论坛，SQL: {}",  sql);
-        try {
-            List<Forum> forumList = jdbcTemplate.query(sql,forumMapper);
-            forumLogger.info("成功查询论坛，论坛ID");
-            return forumList;
-        } catch (Exception e) {
-            forumLogger.error("查询论坛失败 错误信息: {}",e.getMessage(), e);
-            return null;
-        }
-    }
 
 
     @Override
@@ -203,7 +187,28 @@ public class ForumImpl implements ForumDao {
         }
     }
 
+    @Override
+    public List<Forum> getAllForum() {
+        String sql = "SELECT f.*, COUNT(p.id) as post_count " +
+                     "FROM forums f " +
+                     "LEFT JOIN post p ON f.id = p.forum_id " +
+                     "GROUP BY f.id";
+        forumLogger.info("开始执行获取所有论坛信息的查询，SQL: {}", sql);
+        try {
+            List<Forum> result = jdbcTemplate.query(sql, forumMapper);
+            forumLogger.info("成功获取所有论坛信息，共查询到 {} 条记录", result.size());
+            return result;
+        } catch (Exception e) {
+            forumLogger.error("获取所有论坛信息失败，错误信息: {}", e.getMessage(), e);
+            return null;
+        }
+    }
 
+    /**
+     * 根据论坛名称模糊查询论坛信息，包含每个论坛的帖子数量
+     * @param name 用于模糊查询的论坛名称
+     * @return 包含匹配论坛信息的列表
+     */
     @Override
     public List<Map<String, Object>> getAllForumByNameWithPostCount(String name) {
         String sql = "SELECT f.*, COUNT(p.id) as post_count " +
@@ -212,6 +217,14 @@ public class ForumImpl implements ForumDao {
                      "WHERE f.name LIKE ? " +
                      "GROUP BY f.id";
         String searchName = "%" + name + "%";
-        return jdbcTemplate.queryForList(sql, searchName);
+        forumLogger.info("开始执行根据名称 {} 模糊查询论坛信息的查询，SQL: {}", name, sql);
+        try {
+            List<Map<String, Object>> result = jdbcTemplate.queryForList(sql, searchName);
+            forumLogger.info("成功根据名称 {} 模糊查询论坛信息，共查询到 {} 条记录", name, result.size());
+            return result;
+        } catch (Exception e) {
+            forumLogger.error("根据名称 {} 模糊查询论坛信息失败，错误信息: {}", name, e.getMessage(), e);
+            return null;
+        }
     }
 }
