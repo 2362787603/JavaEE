@@ -23,7 +23,7 @@ public class CommentDaoImpl implements CommentDao {
         public Comment mapRow(ResultSet rs, int rowNum) throws SQLException {
             Comment c = new Comment();
             c.setId(rs.getInt("id"));
-            c.setUserID(rs.getInt("user_id"));
+            c.setUserID(rs.getString("user_id"));
             c.setPostID(rs.getInt("post_id"));
             c.setCommentID(rs.getInt("comment_id"));
             c.setCommentContent(rs.getString("comment_content"));

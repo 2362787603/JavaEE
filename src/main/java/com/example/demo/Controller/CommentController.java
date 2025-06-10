@@ -31,7 +31,7 @@ public class CommentController {
         Map<String, Object> resp = new HashMap<>();
         try {
             Comment c = new Comment();
-            c.setUserID((Integer) map.get("userID"));
+            c.setUserID((String) map.get("userID"));
             c.setPostID((Integer) map.get("postID"));
             c.setCommentID((Integer) map.get("commentID"));
             c.setCommentContent((String) map.get("commentContent"));

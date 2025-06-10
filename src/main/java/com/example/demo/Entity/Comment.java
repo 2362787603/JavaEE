@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor  // 无参构造器
 public class Comment {
     private Integer Id;
-    private Integer UserID;
+    private String UserID;
     private Integer PostID;
     private Integer CommentID    = 0;
     private String  CommentContent;
