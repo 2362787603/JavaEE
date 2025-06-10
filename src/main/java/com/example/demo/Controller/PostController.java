@@ -42,7 +42,7 @@ public class PostController {
         Map<String, Object> resp = new HashMap<>();
         try {
             Post post = new Post();
-            post.setUserID((Integer) map.get("userID"));
+            post.setUserID((String) map.get("userID"));
             post.setForumID((Integer) map.get("forumID"));
             post.setTitle((String) map.get("title"));
             post.setContent((String) map.get("content"));

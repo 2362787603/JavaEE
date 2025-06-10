@@ -23,7 +23,7 @@ public class PostDaoImpl implements PostDao {
         public Post mapRow(ResultSet rs, int rowNum) throws SQLException {
             Post p = new Post();
             p.setId(rs.getInt("id"));
-            p.setUserID(rs.getInt("user_id"));
+            p.setUserID(rs.getString("user_id"));
             p.setForumID(rs.getInt("forum_id"));
             p.setTitle(rs.getString("title"));
             p.setContent(rs.getString("content"));

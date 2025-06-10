@@ -41,7 +41,7 @@ public class ForumFollowImpl implements ForumFollowDao {
         public Post mapRow(ResultSet rs, int rowNum) throws SQLException {
             Post post = new Post();
             post.setId(rs.getInt("id"));
-            post.setUserID(rs.getInt("user_id"));
+            post.setUserID(rs.getString("user_id"));
             post.setForumID(rs.getInt("forum_id"));
             post.setTitle(rs.getString("title"));
             post.setContent(rs.getString("content"));
@@ -87,7 +87,7 @@ public class ForumFollowImpl implements ForumFollowDao {
         String sql = "SELECT p.*, u.userName " +
         "FROM post p " +
         "JOIN forum_follow ff ON p.forum_id = ff.forum_id " +
-        "JOIN users u ON p.user_id = u.userId " +
+        "JOIN users u ON p.user_id = u.UserId " +
         "WHERE ff.user_id = ? " +
         "ORDER BY p.create_time DESC";
         return jdbcTemplate.query(sql, postMapper, userId);

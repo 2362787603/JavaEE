@@ -83,7 +83,8 @@ const searchAll = () => {
 // 获取用户关注论坛的帖子数据
 const fetchUserFollowedForumsPosts = async () => {
   try {
-    const response = await axios.get(`http://localhost:8080/forum/getAllPostsOfUserFollowedForums?userId=${loginData.value}`);
+    // const response = await axios.get(`http://localhost:8080/forum/getAllPostsOfUserFollowedForums?userId=${loginData.value}`);
+    const response = await axios.get(`http://localhost:8080/forum/getAllpost`);
     if (response.data.success) {
       userFollowedForumsPosts.value = response.data.posts;
     } else {
