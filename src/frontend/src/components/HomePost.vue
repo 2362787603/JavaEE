@@ -41,7 +41,7 @@
           <path d="M3 22C3 17.58 6.58 14 11 14H13C17.42 14 21 17.58 21 22" stroke="#CCCCCC" stroke-width="2" stroke-linecap="round"/>
         </svg>
         <!-- 根据帖子数据显示用户名 -->
-        <a :href="post.href" :to="post.postpage" @click="handleClick">{{ post.username }}</a>
+        <a :href="post.href" :to="post.postpage" @click="handleClick">{{ post.userName }}</a>
       </div>
       <div class="comment">
         <span class="comment-icon">
