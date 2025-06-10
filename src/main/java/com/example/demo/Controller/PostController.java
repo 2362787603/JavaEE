@@ -156,4 +156,81 @@ public class PostController {
 
 
 
+    // PostController.java
+    /**
+     * 获取所有帖子（按创建时间倒序）
+     */
+    @GetMapping("/getAllpost")
+    public ResponseEntity<Map<String, Object>> getAllPosts() {
+        Map<String, Object> resp = new HashMap<>();
+        try {
+            List<Post> list = postDao.getAllPosts();
+            resp.put("posts", list);
+            resp.put("success", true);
+            return new ResponseEntity<>(resp, HttpStatus.OK);
+        } catch (Exception e) {
+            logger.error("获取所有帖子出错: {}", e.getMessage(), e);
+            resp.put("message", "获取帖子列表过程中发生错误");
+            resp.put("success", false);
+            return new ResponseEntity<>(resp, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+    // PostController.java
+    /**
+     * 根据标题搜索帖子
+     */
+    @PostMapping("/search/byTitle")
+    public ResponseEntity<Map<String, Object>> searchPostsByTitle(@RequestBody Map<String, String> request) {
+        Map<String, Object> resp = new HashMap<>();
+        try {
+            String keyword = request.get("searchName");
+            if (keyword == null || keyword.trim().isEmpty()) {
+                resp.put("message", "搜索关键词不能为空");
+                resp.put("success", false);
+                return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
+            }
+
+            List<Post> posts = postDao.searchPostsByTitle(keyword);
+            resp.put("posts", posts);
+            resp.put("success", true);
+            return new ResponseEntity<>(resp, HttpStatus.OK);
+        } catch (Exception e) {
+            logger.error("搜索帖子出错: {}", e.getMessage(), e);
+            resp.put("message", "搜索帖子过程中发生错误");
+            resp.put("success", false);
+            return new ResponseEntity<>(resp, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+
+    @PostMapping("/commentCount")
+    public ResponseEntity<Map<String, Object>> getCommentCount(@RequestBody Map<String, Object> request) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            int postId = Integer.parseInt(request.get("postId").toString());
+            int count = postDao.getCommentCountByPostId(postId);
+
+            response.put("code", 200);
+            response.put("message", "success");
+            response.put("count", count);
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("code", 400);
+            response.put("message", "参数错误: " + e.getMessage());
+            response.put("data", null);
+
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+
+
+
+
+
 }

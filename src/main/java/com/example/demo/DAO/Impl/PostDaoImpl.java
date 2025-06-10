@@ -80,4 +80,32 @@ public class PostDaoImpl implements PostDao {
         return result != null && result == 1 ? "OK" : "FAIL";
     }
 
+
+    // PostDaoImpl.java
+    @Override
+    public List<Post> getAllPosts() {
+        String sql = "SELECT post.*,u.userName FROM post JOIN users u ON u.userId=post.user_Id ORDER BY post.create_time DESC";
+        return jdbc.query(sql, postMapper);
+    }
+
+
+    // PostDaoImpl.java
+    @Override
+    public List<Post> searchPostsByTitle(String keyword) {
+        String sql = "SELECT post.*,u.userName FROM post JOIN users u ON u.userId=post.user_Id " +
+                "WHERE post.title LIKE ? ORDER BY post.create_time DESC";
+        return jdbc.query(sql, postMapper, "%" + keyword + "%");
+    }
+
+
+    @Override
+    public int getCommentCountByPostId(int postId) {
+        String sql = "SELECT COUNT(*) FROM comment WHERE post_id = ?";
+        return jdbc.queryForObject(sql, Integer.class, postId);
+    }
+
+
+
+
+
 }

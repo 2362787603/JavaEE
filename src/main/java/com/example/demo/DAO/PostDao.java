@@ -21,4 +21,12 @@ public interface PostDao {
 
     String testConnection();
 
+    // PostDao.java
+    List<Post> getAllPosts();
+
+    List<Post> searchPostsByTitle(String keyword);
+
+
+    int getCommentCountByPostId(int postId);
+
 }
