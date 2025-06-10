@@ -479,4 +479,29 @@ public class ForumController {
             return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    /**
+     * 检查用户是否关注了某论坛
+     * @param userId 用户 ID
+     * @param forumId 论坛 ID
+     * @return 包含检查结果的响应实体
+     */
+    @GetMapping("/isUserFollow")
+    public ResponseEntity<Map<String, Object>> isUserFollowForum(@RequestParam String userId, @RequestParam Integer forum_id) {
+        logger.info("收到检查用户 {} 是否关注论坛 {} 的请求", userId, forum_id);
+        Map<String, Object> response = new HashMap<>();
+        try {
+            boolean isFollowed = forumFollowImpl.isUserFollowForum(userId, forum_id);
+            response.put("message", "检查用户是否关注论坛成功");
+            response.put("success", true);
+            response.put("isFollowed", isFollowed);
+            logger.info("用户 {} 是否关注论坛 {} 的结果: {}", userId, forum_id, isFollowed);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            logger.error("检查用户是否关注论坛出错，用户 ID: {}, 论坛 ID: {}, 错误信息: {}", userId, forum_id, e.getMessage(), e);
+            response.put("message", "检查用户是否关注论坛过程中发生错误");
+            response.put("success", false);
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

@@ -92,4 +92,10 @@ public class ForumFollowImpl implements ForumFollowDao {
         "ORDER BY p.create_time DESC";
         return jdbcTemplate.query(sql, postMapper, userId);
     }
+    @Override
+    public boolean isUserFollowForum(String userId, int forumId) {
+        String sql = "SELECT COUNT(*) FROM forum_follow WHERE user_id = ? AND forum_id = ?";
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, userId, forumId);
+        return count != null && count > 0;
+    }
 }

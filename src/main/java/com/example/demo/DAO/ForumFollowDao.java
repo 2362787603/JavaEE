@@ -18,4 +18,5 @@ public interface ForumFollowDao {
      * @return 用户关注的所有论坛的所有帖子列表
      */
     List<Post> getAllPostsOfUserFollowedForums(String userId);
+    boolean isUserFollowForum(String userId, int forumId);
 }
