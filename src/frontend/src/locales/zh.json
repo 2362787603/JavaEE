@@ -1,0 +1,53 @@
+{
+    "mainPage": {
+      "followLabel": "关注",
+      "exploreLabel": "推荐",
+      "paperCounts": "论文数：",
+      "citation": "引用数："
+    },
+    "mustReadView":{
+        "title": "必读论文",
+        "description": "必读论文是帮助您了解某个领域、机构、期刊、会议的学术论文的工具。",
+        "all":"全部",
+        "topic":"主题",
+        "lab":"期刊",
+        "journal":"机构",
+        "conference":"会议"
+    },
+    "searchBar":{
+        "title": "AI帮你理解科学"
+    },
+    "userProfile":{
+        "login": "立即登录"
+    },
+    "sideBar":{
+        "search": "搜索",
+        "analysis": "数据分析",
+        "scientific": "科研发现",
+        "ranking": "排名",
+        "mustRead": "必读论文",
+        "journal": "期刊顶会"
+    },
+    "search": {
+      "placeholder": "Search related must-read papers",
+      "fieldQuery": "Field Query"
+    },
+    "researcherContent":{
+        "followButton":"关注",
+        "institution":  "机构信息",
+        "field": "研究领域"
+    },
+    "personInfo":{
+      "manage":"账号信息",
+      "academic": "学术主页",
+      "user": "个人账户",
+      "follow": "我的关注",
+      "collection": "论文收藏",
+      "browse": "浏览历史"
+    },
+    "buttons": {
+      "share": "Share",
+      "favorite": "Favorite"
+    }
+  }
+  

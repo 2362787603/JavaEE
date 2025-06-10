@@ -1,0 +1,652 @@
+
+<!--
+<template>
+  <div class="emoji-input-container">
+
+    <div class="input-wrapper">
+      <textarea
+        ref="textareaRef"
+        v-model="inputText"
+        class="text-input"
+        :placeholder="placeholder"
+        @input="emitUpdate"
+        @keydown.enter.prevent="handleEnter"
+      ></textarea>
+      
+      <div class="input-actions">
+        <button type="button" class="emoji-toggle" @click="toggleEmojiPicker">
+          <span class="emoji-icon">😊</span>
+        </button>
+        <button type="button" class="send-button" @click="sendMessage">
+          发送
+        </button>
+      </div>
+    </div>
+    
+    <div v-if="showEmojiPicker" class="emoji-picker">
+      <div class="emoji-grid">
+        <button
+          v-for="(emoji, index) in emojis"
+          :key="index"
+          class="emoji-button"
+          @click="insertEmoji(emoji)"
+        >
+          {{ emoji }}
+        </button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, defineEmits} from 'vue';
+
+/*
+const props = defineProps({
+  placeholder: {
+    type: String,
+    default: '输入消息...'
+  },
+  maxLength: {
+    type: Number,
+    default: 1000
+  }
+});*/
+
+const emit = defineEmits(['update:modelValue', 'send']);
+
+const textareaRef = ref(null);
+const inputText = ref('');
+const showEmojiPicker = ref(false);
+
+// Common emojis - can be expanded or replaced with a library
+const emojis = ref([
+  '😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇',
+  '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚',
+  '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩',
+  '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣',
+  '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '💔', '❣️', '💕',
+  '👍', '👎', '👏', '🙌', '🤝', '💪', '🤲', '👐', '🙏', '✌️'
+]);
+
+// Toggle emoji picker visibility
+const toggleEmojiPicker = () => {
+  showEmojiPicker.value = !showEmojiPicker.value;
+};
+
+// Insert emoji at cursor position
+const insertEmoji = (emoji) => {
+  const textarea = textareaRef.value;
+  const startPos = textarea.selectionStart;
+  const endPos = textarea.selectionEnd;
+  
+  inputText.value = 
+    inputText.value.substring(0, startPos) + 
+    emoji + 
+    inputText.value.substring(endPos);
+  
+  // Emit the updated value
+  emitUpdate();
+  
+  // Focus back on textarea and set cursor position after the inserted emoji
+  nextTick(() => {
+    textarea.focus();
+    textarea.selectionStart = startPos + emoji.length;
+    textarea.selectionEnd = startPos + emoji.length;
+  });
+};
+
+// Handle Enter key press
+const handleEnter = (e) => {
+  if (!e.shiftKey) {
+    sendMessage();
+  } else {
+    // Allow Shift+Enter for line break
+    const startPos = textareaRef.value.selectionStart;
+    const endPos = textareaRef.value.selectionEnd;
+    
+    inputText.value = 
+      inputText.value.substring(0, startPos) + 
+      '\n' + 
+      inputText.value.substring(endPos);
+    
+    // Set cursor position after the inserted line break
+    nextTick(() => {
+      textareaRef.value.selectionStart = startPos + 1;
+      textareaRef.value.selectionEnd = startPos + 1;
+    });
+  }
+};
+
+// Emit update event when text changes
+const emitUpdate = () => {
+  emit('update:modelValue', inputText.value);
+};
+
+// Send message
+const sendMessage = () => {
+  if (inputText.value.trim()) {
+    emit('send', inputText.value);
+    inputText.value = '';
+  }
+};
+
+// Import nextTick for DOM updates
+import { nextTick } from 'vue';
+</script>
+
+<style scoped>
+.emoji-input-container {
+  border: 1px solid #dcdfe6;
+  border-radius: 8px;
+  overflow: hidden;
+  width: 55%;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.input-wrapper {
+  display: flex;
+  position: relative;
+  width: 100%;
+}
+
+.text-input {
+  width: 100%;
+  min-height: 80px;
+  padding: 12px;
+  border: none;
+  outline: none;
+  resize: vertical;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #333;
+}
+
+.input-actions {
+  display: flex;
+  align-items: center;
+  padding: 0 12px 12px;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+}
+
+.emoji-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+  padding: 6px;
+  margin-right: 10px;
+  transition: transform 0.2s;
+}
+
+.emoji-toggle:hover {
+  transform: scale(1.1);
+}
+
+.emoji-icon {
+  font-size: 20px;
+}
+
+.send-button {
+  background-color: #409eff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 16px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.send-button:hover {
+  background-color: #66b1ff;
+}
+
+.emoji-picker {
+  background-color: #fff;
+  border-top: 1px solid #ebeef5;
+  padding: 10px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.emoji-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 8px;
+}
+
+.emoji-button {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.emoji-button:hover {
+  background-color: #f5f7fa;
+}
+
+@media (max-width: 600px) {
+  .emoji-grid {
+    grid-template-columns: repeat(8, 1fr);
+  }
+}
+</style>-->
+
+<template>
+  <div class="emoji-input-container">
+    <!-- Text input area -->
+    <div class="input-wrapper">
+      <textarea
+        ref="textareaRef"
+        v-model="inputText"
+        class="text-input"
+        :placeholder="placeholder"
+        @input="emitUpdate"
+        @keydown.enter.prevent="handleEnter"
+      ></textarea>
+      
+      <!-- Image preview area -->
+      <div v-if="uploadedImages.length > 0" class="image-preview-container">
+        <div 
+          v-for="(image, idx) in uploadedImages" 
+          :key="idx" 
+          class="image-preview"
+        >
+          <img :src="image.url" alt="Uploaded image preview" />
+          <button class="remove-image-btn" @click="removeImage(idx)">×</button>
+        </div>
+      </div>
+      
+      <div class="input-actions">
+        <!-- Image upload button -->
+        <button type="button" class="image-upload-toggle" @click="triggerFileUpload">
+          <span class="image-icon">🖼️</span>
+        </button>
+        <!-- Hidden file input -->
+        <input 
+          type="file" 
+          ref="fileInputRef" 
+          class="file-input" 
+          accept="image/*" 
+          multiple
+          @change="handleFileUpload" 
+        />
+        
+        <button type="button" class="emoji-toggle" @click="toggleEmojiPicker">
+          <span class="emoji-icon">😊</span>
+        </button>
+        
+        <button type="button" class="send-button" @click="sendMessage">
+          发送
+        </button>
+      </div>
+    </div>
+    
+    <!-- Emoji picker -->
+    <div v-if="showEmojiPicker" class="emoji-picker">
+      <div class="emoji-grid">
+        <button
+          v-for="(emoji, index) in emojis"
+          :key="index"
+          class="emoji-button"
+          @click="insertEmoji(emoji)"
+        >
+          {{ emoji }}
+        </button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, defineEmits, defineProps } from 'vue';
+
+const props = defineProps({
+  placeholder: {
+    type: String,
+    default: '输入消息...'
+  },
+  maxLength: {
+    type: Number,
+    default: 1000
+  },
+  maxImageSize: {
+    type: Number,
+    default: 5 // Maximum file size in MB
+  },
+  maxImages: {
+    type: Number,
+    default: 9 // Maximum number of images
+  }
+});
+
+const emit = defineEmits(['update:modelValue', 'send']);
+
+const textareaRef = ref(null);
+const fileInputRef = ref(null);
+const inputText = ref('');
+const showEmojiPicker = ref(false);
+const uploadedImages = ref([]);
+
+// Common emojis - can be expanded or replaced with a library
+const emojis = ref([
+  '😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇',
+  '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚',
+  '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩',
+  '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣',
+  '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '💔', '❣️', '💕',
+  '👍', '👎', '👏', '🙌', '🤝', '💪', '🤲', '👐', '🙏', '✌️'
+]);
+
+// Toggle emoji picker visibility
+const toggleEmojiPicker = () => {
+  showEmojiPicker.value = !showEmojiPicker.value;
+};
+
+// Trigger file upload dialog
+const triggerFileUpload = () => {
+  fileInputRef.value.click();
+};
+
+// Handle file upload
+const handleFileUpload = (event) => {
+  const files = event.target.files;
+  
+  if (!files || files.length === 0) return;
+  
+  // Check if adding these files would exceed the maximum
+  if (uploadedImages.value.length + files.length > props.maxImages) {
+    alert(`最多只能上传${props.maxImages}张图片`);
+    return;
+  }
+  
+  // Process each file
+  Array.from(files).forEach(file => {
+    // Check if file is an image
+    if (!file.type.startsWith('image/')) {
+      alert('请上传图片文件');
+      return;
+    }
+    
+    // Check file size
+    const fileSizeMB = file.size / (1024 * 1024);
+    if (fileSizeMB > props.maxImageSize) {
+      alert(`图片大小不能超过${props.maxImageSize}MB`);
+      return;
+    }
+    
+    // Create a URL for preview
+    const imageUrl = URL.createObjectURL(file);
+    
+    // Add to uploaded images
+    uploadedImages.value.push({
+      file: file,
+      url: imageUrl
+    });
+  });
+  
+  // Reset file input to allow selecting the same file again
+  event.target.value = '';
+};
+
+// Remove image from preview
+const removeImage = (index) => {
+  // Revoke the object URL to free memory
+  URL.revokeObjectURL(uploadedImages.value[index].url);
+  // Remove from array
+  uploadedImages.value.splice(index, 1);
+};
+
+// Insert emoji at cursor position
+const insertEmoji = (emoji) => {
+  const textarea = textareaRef.value;
+  const startPos = textarea.selectionStart;
+  const endPos = textarea.selectionEnd;
+  
+  inputText.value = 
+    inputText.value.substring(0, startPos) + 
+    emoji + 
+    inputText.value.substring(endPos);
+  
+  // Emit the updated value
+  emitUpdate();
+  
+  // Focus back on textarea and set cursor position after the inserted emoji
+  nextTick(() => {
+    textarea.focus();
+    textarea.selectionStart = startPos + emoji.length;
+    textarea.selectionEnd = startPos + emoji.length;
+  });
+};
+
+// Handle Enter key press
+const handleEnter = (e) => {
+  if (!e.shiftKey) {
+    sendMessage();
+  } else {
+    // Allow Shift+Enter for line break
+    const startPos = textareaRef.value.selectionStart;
+    const endPos = textareaRef.value.selectionEnd;
+    
+    inputText.value = 
+      inputText.value.substring(0, startPos) + 
+      '\n' + 
+      inputText.value.substring(endPos);
+    
+    // Set cursor position after the inserted line break
+    nextTick(() => {
+      textareaRef.value.selectionStart = startPos + 1;
+      textareaRef.value.selectionEnd = startPos + 1;
+    });
+  }
+};
+
+// Emit update event when text changes
+const emitUpdate = () => {
+  emit('update:modelValue', inputText.value);
+};
+
+// Send message
+const sendMessage = () => {
+  // Only send if there's text or images
+  if (inputText.value.trim() || uploadedImages.value.length > 0) {
+    // Create message data object with text and images
+    const messageData = {
+      text: inputText.value,
+      images: uploadedImages.value.map(img => img.file)
+    };
+    
+    // Emit the message data
+    emit('send', messageData);
+    
+    // Clear the input and images
+    inputText.value = '';
+    uploadedImages.value.forEach(img => URL.revokeObjectURL(img.url));
+    uploadedImages.value = [];
+  }
+};
+
+// Import nextTick for DOM updates
+import { nextTick } from 'vue';
+</script>
+
+<style scoped>
+.emoji-input-container {
+  border: 1px solid #dcdfe6;
+  border-radius: 8px;
+  overflow: hidden;
+  width: 55%;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.input-wrapper {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  width: 100%;
+}
+
+.text-input {
+  width: 100%;
+  min-height: 80px;
+  padding: 12px;
+  border: none;
+  outline: none;
+  resize: vertical;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #333;
+}
+
+/* Image preview styles */
+.image-preview-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 12px;
+  background-color: #f9f9f9;
+  border-top: 1px solid #ebeef5;
+}
+
+.image-preview {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid #ebeef5;
+}
+
+.image-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.remove-image-btn {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 20px;
+  height: 20px;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0;
+  line-height: 1;
+}
+
+.input-actions {
+  display: flex;
+  align-items: center;
+  padding: 0 12px 12px;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+}
+
+.file-input {
+  display: none; /* Hide the native file input */
+}
+
+.image-upload-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+  padding: 6px;
+  margin-right: 10px;
+  transition: transform 0.2s;
+}
+
+.image-upload-toggle:hover {
+  transform: scale(1.1);
+}
+
+.emoji-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+  padding: 6px;
+  margin-right: 10px;
+  transition: transform 0.2s;
+}
+
+.emoji-toggle:hover {
+  transform: scale(1.1);
+}
+
+.emoji-icon {
+  font-size: 20px;
+}
+
+.send-button {
+  background-color: #409eff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 16px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.send-button:hover {
+  background-color: #66b1ff;
+}
+
+.emoji-picker {
+  background-color: #fff;
+  border-top: 1px solid #ebeef5;
+  padding: 10px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.emoji-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 8px;
+}
+
+.emoji-button {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.emoji-button:hover {
+  background-color: #f5f7fa;
+}
+
+@media (max-width: 600px) {
+  .emoji-grid {
+    grid-template-columns: repeat(8, 1fr);
+  }
+  
+  .image-preview {
+    width: 60px;
+    height: 60px;
+  }
+}
+</style>
