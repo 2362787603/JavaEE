@@ -83,10 +83,13 @@ public class ForumImpl implements ForumDao {
 
     @Override
     public List<Forum> getAllForum(){
-        String sql = "SELECT * FROM forums";
+        String sql = "SELECT f.*, COUNT(p.id) as post_count " +
+                     "FROM forums f " +
+                     "LEFT JOIN post p ON f.id = p.forum_id " +
+                     "GROUP BY f.id";
         forumLogger.info("开始查询论坛，SQL: {}",  sql);
         try {
-            List<Forum> forumList = jdbcTemplate.query(sql,new BeanPropertyRowMapper<>(Forum.class));
+            List<Forum> forumList = jdbcTemplate.query(sql,forumMapper);
             forumLogger.info("成功查询论坛，论坛ID");
             return forumList;
         } catch (Exception e) {
@@ -200,14 +203,6 @@ public class ForumImpl implements ForumDao {
         }
     }
 
-    @Override
-    public List<Forum> getAllForum() {
-        String sql = "SELECT f.*, COUNT(p.id) as post_count " +
-                     "FROM forums f " +
-                     "LEFT JOIN post p ON f.id = p.forum_id " +
-                     "GROUP BY f.id";
-        return jdbcTemplate.query(sql, forumMapper);
-    }
 
     @Override
     public List<Map<String, Object>> getAllForumByNameWithPostCount(String name) {
