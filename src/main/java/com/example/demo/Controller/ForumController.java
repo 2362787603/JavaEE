@@ -4,6 +4,7 @@ import com.example.demo.DAO.Impl.ForumFollowImpl;
 import com.example.demo.DAO.Impl.ForumImpl;
 import com.example.demo.Entity.Forum;
 import com.example.demo.Entity.ForumFollow;
+import com.example.demo.Entity.Post;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/forum")
@@ -28,6 +30,8 @@ public class ForumController {
 
     @Autowired
     private ForumFollowImpl forumFollowImpl;
+
+    
 
     @PostMapping("/create")
     public ResponseEntity<Map<String, Object>> createForum(@RequestBody Map<String, Object> map) {
@@ -440,6 +444,37 @@ public class ForumController {
         } catch (Exception e) {
             logger.error("根据名称 {} 查询论坛列表出错，错误信息: {}", name, e.getMessage(), e);
             response.put("message", "根据名称查询论坛列表过程中发生错误");
+            response.put("success", false);
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * 获取指定用户关注的所有论坛的所有帖子
+     * @param userId 用户 ID
+     * @return 响应结果
+     */
+    @GetMapping("/getAllPostsOfUserFollowedForums")
+    public ResponseEntity<Map<String, Object>> getAllPostsOfUserFollowedForums(@RequestParam String userId) {
+        logger.info("收到获取用户 {} 关注的所有论坛的所有帖子的请求", userId);
+        Map<String, Object> response = new HashMap<>();
+        try {
+            List<Post> posts = forumFollowImpl.getAllPostsOfUserFollowedForums(userId);
+            if (!posts.isEmpty()) {
+                response.put("message", "获取用户关注的所有论坛的所有帖子成功");
+                response.put("success", true);
+                response.put("posts", posts);
+                logger.info("用户 {} 关注的所有论坛的所有帖子获取成功", userId);
+                return new ResponseEntity<>(response, HttpStatus.OK);
+            } else {
+                response.put("message", "用户关注的所有论坛暂无帖子");
+                response.put("success", false);
+                logger.warn("用户 {} 关注的所有论坛暂无帖子", userId);
+                return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception e) {
+            logger.error("获取用户 {} 关注的所有论坛的所有帖子出错，错误信息: {}", userId, e.getMessage(), e);
+            response.put("message", "获取用户关注的所有论坛的所有帖子过程中发生错误");
             response.put("success", false);
             return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }

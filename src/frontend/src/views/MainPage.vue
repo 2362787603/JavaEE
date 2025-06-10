@@ -1,4 +1,4 @@
-\<template>
+<template>
   <div class="page-container">
     <div class="scrollable-content">
       <div class="search-container">
@@ -21,27 +21,25 @@
           <LeftHot class="mylefthot" :getUserId="loginData"/>
         </div>
         <div class="middlepart">
-            <HotPost class="hotpost"/>
-            <div class="guessyoulike">
-                <p>最新动态</p>
+          <HotPost class="hotpost"/>
+          <div class="guessyoulike">
+            <p>最新动态</p>
+          </div>
+          <div class="mycontent">
+            <div class="pagepost">
+              <!-- 循环渲染 HomePost 组件并传递帖子数据，监听更新点赞事件 -->
+              <HomePost 
+                v-for="(post, index) in userFollowedForumsPosts" 
+                :key="index" 
+                :post="post" 
+                class="page"
+                @update-like="updatePostLike"
+              />
             </div>
-            <div class="mycontent">
-                <div class="pagepost">
-                    <HomePost class="page"/>
-                    <HomePost class="page"/>
-                    <HomePost class="page"/>
-                    <HomePost class="page"/>
-                    <HomePost class="page"/>
-                    <HomePost class="page"/>
-                    <HomePost class="page"/>
-                    <HomePost class="page"/>
-                    <HomePost class="page"/>
-                    <HomePost class="page"/>
-                </div>
-                <div class="rightHot">
-                    <RightHot />
-                </div>
+            <div class="rightHot">
+              <RightHot />
             </div>
+          </div>
         </div>
       </div>
     </div>
@@ -49,53 +47,92 @@
 </template>
 
 <script setup>
-
+import { computed,ref, onMounted } from 'vue';
+import axios from 'axios';
 import HomePost from '@/components/HomePost.vue';
 import HotPost from '@/components/HotPost.vue';
 import LeftHot from '@/components/LeftHot.vue';
 import RightHot from '@/components/RightHot.vue';
-import {computed, onMounted,reactive,ref} from 'vue'
-import { useRoute,useRouter } from 'vue-router'
-import axios from 'axios'
+import {  useRoute, useRouter } from 'vue-router';
 
-const route = useRoute()
-const router = useRouter()
+const route = useRoute();
+const router = useRouter();
 const loginData = computed(() => {
-  const raw = route.query.loginData
-  if (!raw) return ''               // 没有就返回空字符串
-  return raw
-})
+  const raw = route.query.loginData;
+  if (!raw) return '';
+  return raw;
+});
 
-console.log('loginData:', loginData.value)
-
-let userInformation=ref(null)
-let searchText=ref(null)
+let userInformation = ref(null);
+let searchText = ref(null);
+// 存储用户关注论坛的帖子数据
+const userFollowedForumsPosts = ref([]); 
+const loading = ref(true);
+const error = ref(null);
 
 const searchAll = () => {
   router.push({
-    path:'/Search',
+    path: '/Search',
     query: {
       userId: loginData.value,
       txt: searchText.value
-  }})
-}
+    }
+  });
+};
 
-onMounted(async ()=>{
-  console.log('Main Page Start')
+// 获取用户关注论坛的帖子数据
+const fetchUserFollowedForumsPosts = async () => {
+  try {
+    const response = await axios.get(`http://localhost:8080/forum/getAllPostsOfUserFollowedForums?userId=${loginData.value}`);
+    if (response.data.success) {
+      userFollowedForumsPosts.value = response.data.posts;
+    } else {
+      error.value = '获取用户关注论坛的帖子失败: ' + response.data.message;
+    }
+  } catch (err) {
+    error.value = '请求出错: ' + err.message;
+  } finally {
+    loading.value = false;
+  }
+};
+
+onMounted(async () => {
+  console.log('Main Page Start');
   const { data, status } = await axios.get(
-    'http://localhost:8080/user/'+loginData.value, 
+    'http://localhost:8080/user/' + loginData.value, 
     {
       validateStatus: () => true
-    })
-  if(status != 200 ){
-    console.log(data.message)
+    }
+  );
+  if (status !== 200) {
+    console.log(data.message);
+  } else {
+    console.log("success!!");
   }
-  else{
-    console.log("success!!")
+  userInformation.value = data;
+  await fetchUserFollowedForumsPosts(); 
+});
+
+const updatePostLike = async (postId, newLikeNumber) => {
+  try {
+    // 向后端发送点赞请求，假设后端接口为 /like
+    const response = await axios.post('http://localhost:8080/post/like', {
+      postID: postId
+    });
+
+    if (response.data.success) {
+      // 若后端响应成功，更新本地数据
+      const postIndex = userFollowedForumsPosts.value.findIndex(post => post.id === postId);
+      if (postIndex !== -1) {
+        userFollowedForumsPosts.value[postIndex].likeNumber = newLikeNumber;
+      }
+    } else {
+      console.error('点赞失败:', response.data.message);
+    }
+  } catch (err) {
+    console.error('点赞请求出错:', err.message);
   }
-  userInformation = reactive(data)
-  console.log(userInformation)
-})
+};
 </script>
 
 <style scoped>

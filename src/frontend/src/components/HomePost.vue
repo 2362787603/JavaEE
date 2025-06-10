@@ -1,100 +1,104 @@
 <template>
-    <div class="whole-component">
-        <div class="post-container">
-            <div class="postpicture">
-                <el-image :src="require(`../assets/${imagePath}`)" ></el-image>
-            </div>
-            <div class="postline">
-                <div class="postman">
-                    <div class="postfrom">
-                        <a class="h3-style" :href="href">{{ postFromName }}</a>
-                    </div>
-                    <div class="postinformation">
-                        <p>🕒 {{ posttime }}</p>
-                        <p>👁️ {{ postfollow }}人关注了该吧</p>
-                    </div>
-                </div>
-            </div>
-            <div class="follow">
-                <button class="follow-button">关注</button>
-            </div>
-        </div>
-        <div class="content-container">
-          <a :href="href" :to="postpage" @click="handleClick">### 你有没有发现,这是一个测试qq ###</a>
-          <div class="content">
-            <contentBlock :text="longText"/>
+  <div class="whole-component">
+    <div class="post-container">
+      <div class="postpicture">
+        <!-- 根据帖子数据动态设置图片路径 -->
+        <!-- <el-image :src="require(`../assets/${post.imagePath}`)" ></el-image> -->
+      </div>
+      <div class="postline">
+        <div class="postman">
+          <div class="postfrom">
+            <!-- 根据帖子数据显示发帖来源 -->
+            <a class="h3-style" :href="post.href">{{ post.postFromName }}</a>
           </div>
-          <div class="picture">
-            <pictureBlock1 :images="image"/>
+          <div class="postinformation">
+            <!-- 根据帖子数据显示发帖时间和关注人数 -->
+            <p>🕒 {{ post.posttime }}</p>
+            <p>👁️ {{ post.postfollow }}人关注了该吧</p>
           </div>
         </div>
-        <div class="bottonLine">
-          <div class="littlePerson">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="12" cy="8" r="5" fill="#CCCCCC"/>
-              <path d="M3 22C3 17.58 6.58 14 11 14H13C17.42 14 21 17.58 21 22" stroke="#CCCCCC" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-            <a :href="href" :to="postpage" @click="handleClick">{{ username }}</a>
-          </div>
-          <div class="comment">
-            <span class="comment-icon">
-              <i class="fa-regular fa-comment"></i>
-            </span>
-            <a :href="href" :to="postpage" @click="handleClick">{{ commentNumber }}条评论</a>
-          </div>
-          <div class="like">
-            <span :class="getUserLike" @click="handleLike">
-              <i class="fa-regular fa-thumbs-up"></i>
-            </span>
-            <p>{{ likeNumber }}人点赞</p>
-          </div>
-        </div>
+      </div>
+      <div class="follow">
+        <button class="follow-button">关注</button>
+      </div>
     </div>
+    <div class="content-container">
+      <!-- 根据帖子数据设置链接和标题 -->
+      <a :href="post.href" :to="post.postpage" @click="handleClick">{{ post.title }}</a>
+      <div class="content">
+        <!-- 根据帖子数据显示长文本内容 -->
+        <contentBlock :text="post.longText"/>
+      </div>
+      <div class="picture">
+        <!-- 根据帖子数据显示图片 -->
+        <!-- <pictureBlock1 :images="post.image"/> -->
+      </div>
+    </div>
+    <div class="bottonLine">
+      <div class="littlePerson">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="8" r="5" fill="#CCCCCC"/>
+          <path d="M3 22C3 17.58 6.58 14 11 14H13C17.42 14 21 17.58 21 22" stroke="#CCCCCC" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <!-- 根据帖子数据显示用户名 -->
+        <a :href="post.href" :to="post.postpage" @click="handleClick">{{ post.username }}</a>
+      </div>
+      <div class="comment">
+        <span class="comment-icon">
+          <i class="fa-regular fa-comment"></i>
+        </span>
+        <!-- 根据帖子数据显示评论数 -->
+        <a :href="post.href" :to="post.postpage" @click="handleClick">{{ post.commentNumber }}条评论</a>
+      </div>
+      <div class="like">
+        <span :class="getUserLike" @click="handleLike">
+          <i class="fa-regular fa-thumbs-up"></i>
+        </span>
+        <!-- 根据帖子数据显示点赞数 -->
+        <p>{{ post.likeNumber }}人点赞</p>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script name='HomePost' setup>
-import { ref,computed,defineProps} from 'vue'
-import contentBlock from './contentBlock.vue'
-import pictureBlock1 from './pictureBlock1.vue'
-import '@fortawesome/fontawesome-free/css/all.min.css'
-
-const imagePath=ref('LoginTestFinal.png')
-const postFromName=ref('飧筱刅吧')
-const posttime=ref('13:59')
-const postfollow=ref(119)
-const href=ref('/Test/Test')
-const longText=ref(`这是一个很长的段落文本，可能会超过三行。Vue (发音为 /vjuː/，类似 view) 是一个用于构建用户界面的 JavaScript 框架。它基于标准 HTML、CSS 和 JavaScript 构建，并提供了一个声明式的、组件化的编程模型，帮助你高效地开发用户界面。无论是简单还是复杂的界面，Vue 都可以胜任。Vue 的两个核心功能：声明式渲染和响应性系统。Vue 通过扩展标准 HTML 模板语法来实现声明式渲染，允许我们根据 JavaScript 状态来描述 HTML 应该是什么样子的。当状态改变时，HTML 会自动更新。`);
-const image=['BackGround.png','LoginBackGroud.png','LoginTestFinal.png']
-const username=ref('我不是隼鸮牕')
-const commentNumber=ref(11)
-let likeNumber=ref(114)
+import { ref, computed, defineProps, defineEmits } from 'vue';
+import contentBlock from './contentBlock.vue';
+// import pictureBlock1 from './pictureBlock1.vue';
+import '@fortawesome/fontawesome-free/css/all.min.css';
 
 const props = defineProps({
+  post: {
+    type: Object,
+    required: true
+  },
   HasUserLiked: {
     type: Boolean,
     default: () => false
   }
 });
 
-let isUserLike=ref(props.HasUserLiked)
+// 定义 emits 来触发自定义事件
+const emit = defineEmits(['update-like']);
+
+let isUserLike = ref(props.HasUserLiked);
 
 const handleLike = () => {
-  if(!isUserLike.value){
-    likeNumber.value=likeNumber.value + 1
-    isUserLike.value=true
+  let newLikeNumber = props.post.likeNumber;
+  if (!isUserLike.value) {
+    newLikeNumber += 1;
+  } else {
+    newLikeNumber -= 1;
   }
-  else{
-    likeNumber.value=likeNumber.value - 1
-    isUserLike.value=false
-  }
-}
+  // 触发自定义事件，通知父组件更新数据
+  emit('update-like', props.post.id, newLikeNumber);
+  isUserLike.value = !isUserLike.value;
+};
 
-const getUserLike = computed(() =>{
-  return isUserLike.value?'like-icon':"not-like-icon"
-})
-
+const getUserLike = computed(() => {
+  return isUserLike.value ? 'like-icon' : 'not-like-icon';
+});
 </script>
-
 
 <style scoped>
 /*

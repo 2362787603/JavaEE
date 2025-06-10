@@ -3,6 +3,7 @@ package com.example.demo.DAO.Impl;
 import com.example.demo.DAO.ForumFollowDao;
 import com.example.demo.Entity.Forum;
 import com.example.demo.Entity.ForumFollow;
+import com.example.demo.Entity.Post;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -35,6 +36,22 @@ public class ForumFollowImpl implements ForumFollowDao {
         }
     };
 
+    private final RowMapper<Post> postMapper = new RowMapper<>() {
+        @Override
+        public Post mapRow(ResultSet rs, int rowNum) throws SQLException {
+            Post post = new Post();
+            post.setId(rs.getInt("id"));
+            post.setUserID(rs.getInt("user_id"));
+            post.setForumID(rs.getInt("forum_id"));
+            post.setTitle(rs.getString("title"));
+            post.setContent(rs.getString("content"));
+            // 假设还有创建时间等其他字段，可按需添加
+            post.setCreateTime(rs.getTimestamp("create_time").toLocalDateTime());
+            post.setUserName(rs.getString("userName"));
+            return post;
+        }
+    };
+
     @Override
     public Integer addFollow(ForumFollow follow) {
         String sql = "INSERT INTO forum_follow (user_id, forum_id) VALUES (?, ?)";
@@ -63,5 +80,16 @@ public class ForumFollowImpl implements ForumFollowDao {
                      "JOIN forum_follow ff ON f.id = ff.forum_id " +
                      "WHERE ff.user_id = ?";
         return jdbcTemplate.query(sql, forumMapper, userId);
+    }
+
+    @Override
+    public List<Post> getAllPostsOfUserFollowedForums(String userId) {
+        String sql = "SELECT p.*, u.userName " +
+        "FROM post p " +
+        "JOIN forum_follow ff ON p.forum_id = ff.forum_id " +
+        "JOIN users u ON p.user_id = u.userId " +
+        "WHERE ff.user_id = ? " +
+        "ORDER BY p.create_time DESC";
+        return jdbcTemplate.query(sql, postMapper, userId);
     }
 }

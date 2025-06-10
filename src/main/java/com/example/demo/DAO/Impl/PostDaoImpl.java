@@ -29,6 +29,7 @@ public class PostDaoImpl implements PostDao {
             p.setContent(rs.getString("content"));
             p.setLikeNumber(rs.getInt("like_number"));
             p.setCreateTime(rs.getTimestamp("create_time").toLocalDateTime());
+            p.setUserName(rs.getString("userName"));
             return p;
         }
     };
@@ -49,19 +50,19 @@ public class PostDaoImpl implements PostDao {
 
     @Override
     public Post getPost(Integer id) {
-        String sql = "SELECT * FROM post WHERE id = ?";
+        String sql = "SELECT post.*,u.userName FROM post  JOIN users u ON u.userId=post.user_Id WHERE id = ?";
         return jdbc.queryForObject(sql, postMapper, id);
     }
 
     @Override
     public List<Post> getAllPostInForum(Integer forumID) {
-        String sql = "SELECT * FROM post WHERE forum_id = ? ORDER BY create_time DESC";
+        String sql = "SELECT post.*,u.userName FROM post JOIN users u ON u.userId=post.user_Id WHERE post.forum_id = ? ORDER BY post.create_time DESC";
         return jdbc.query(sql, postMapper, forumID);
     }
 
     @Override
     public List<Post> getAllUserPost(Integer userID) {
-        String sql = "SELECT * FROM post WHERE user_id = ? ORDER BY create_time DESC";
+        String sql = "SELECT post.*,u.userName FROM post JOIN users u ON u.userId=post.user_Id WHERE user_id = ? ORDER BY post.create_time DESC";
         return jdbc.query(sql, postMapper, userID);
     }
 

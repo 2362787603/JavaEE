@@ -3,6 +3,8 @@ package com.example.demo.Entity;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
 @Data               // 包含 getter、setter、toString
@@ -16,4 +18,5 @@ public class Post {
     private String  Content;
     private Integer LikeNumber  = 0;
     private LocalDateTime CreateTime;
+    private String  UserName;
 }
