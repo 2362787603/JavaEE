@@ -18,6 +18,7 @@ import java.sql.Statement;
 import java.util.List;
 import java.util.Map;
 
+
 @Repository
 public class ForumImpl implements ForumDao {
 
@@ -79,6 +80,21 @@ public class ForumImpl implements ForumDao {
             return null;
         }
     }
+
+    @Override
+    public List<Forum> getAllForum(){
+        String sql = "SELECT * FROM forums";
+        forumLogger.info("开始查询论坛，SQL: {}",  sql);
+        try {
+            List<Forum> forumList = jdbcTemplate.query(sql,new BeanPropertyRowMapper<>(Forum.class));
+            forumLogger.info("成功查询论坛，论坛ID");
+            return forumList;
+        } catch (Exception e) {
+            forumLogger.error("查询论坛失败 错误信息: {}",e.getMessage(), e);
+            return null;
+        }
+    }
+
 
     @Override
     public boolean deleteForum(Integer id) {
