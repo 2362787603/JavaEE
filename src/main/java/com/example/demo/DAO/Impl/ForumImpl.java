@@ -7,11 +7,16 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.List;
+import java.util.Map;
 
 @Repository
 public class ForumImpl implements ForumDao {
@@ -20,6 +25,20 @@ public class ForumImpl implements ForumDao {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+
+    private final RowMapper<Forum> forumMapper = new RowMapper<>() {
+        @Override
+        public Forum mapRow(ResultSet rs, int rowNum) throws SQLException {
+            Forum forum = new Forum();
+            forum.setId(rs.getInt("id"));
+            forum.setUserID(rs.getString("userId"));
+            forum.setName(rs.getString("name"));
+            forum.setIntroduction(rs.getString("introduction"));
+            forum.setFollowCount(rs.getInt("follow_count"));
+            forum.setPostCount(rs.getInt("post_count")); // 设置帖子数量
+            return forum;
+        }
+    };
 
     @Override
     public Integer createForum(String userID, String name, String introduction) {
@@ -163,5 +182,25 @@ public class ForumImpl implements ForumDao {
             forumLogger.error("查询论坛 {} 关注数失败，错误信息: {}", id, e.getMessage(), e);
             return null;
         }
+    }
+
+    @Override
+    public List<Forum> getAllForum() {
+        String sql = "SELECT f.*, COUNT(p.id) as post_count " +
+                     "FROM forums f " +
+                     "LEFT JOIN post p ON f.id = p.forum_id " +
+                     "GROUP BY f.id";
+        return jdbcTemplate.query(sql, forumMapper);
+    }
+
+    @Override
+    public List<Map<String, Object>> getAllForumByNameWithPostCount(String name) {
+        String sql = "SELECT f.*, COUNT(p.id) as post_count " +
+                     "FROM forums f " +
+                     "LEFT JOIN post p ON f.id = p.forum_id " +
+                     "WHERE f.name LIKE ? " +
+                     "GROUP BY f.id";
+        String searchName = "%" + name + "%";
+        return jdbcTemplate.queryForList(sql, searchName);
     }
 }

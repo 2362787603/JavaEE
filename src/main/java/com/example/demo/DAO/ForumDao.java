@@ -1,5 +1,7 @@
 package com.example.demo.DAO;
 
+import java.util.List;
+import java.util.Map;
 import com.example.demo.Entity.Forum;
 
 public interface ForumDao {
@@ -14,4 +16,11 @@ public interface ForumDao {
     boolean increaseFollowCount(Integer id); // 新增增加计数方法
     boolean decreaseFollowCount(Integer id);
     Integer getFollowCount(Integer id); // 新增查看计数方法
+
+
+    List<Forum> getAllForum();
+
+
+
+    List<Map<String, Object>> getAllForumByNameWithPostCount(String name);
 }

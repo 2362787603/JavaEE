@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -317,6 +318,99 @@ public class ForumController {
         } catch (Exception e) {
             logger.error("取消关注出错，用户ID: {}, 论坛ID: {}, 错误信息: {}", userId, forumId, e.getMessage(), e);
             response.put("message", "取消关注过程中发生错误");
+            response.put("success", false);
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * 获取用户关注的所有论坛
+     * @param userId 用户 ID
+     * @return 响应结果
+     */
+    @GetMapping("/getAllUserFollow")
+    public ResponseEntity<Map<String, Object>> getAllUserFollow(@RequestParam String userId) {
+        logger.info("收到获取用户 {} 关注的所有论坛请求", userId);
+        Map<String, Object> response = new HashMap<>();
+        try {
+            List<Forum> followForums = forumFollowImpl.getAllUserFollow(userId);
+            if (!followForums.isEmpty()) {
+                response.put("message", "获取用户关注的论坛列表成功");
+                response.put("success", true);
+                response.put("followForums", followForums);
+                logger.info("用户 {} 关注的论坛列表获取成功", userId);
+                return new ResponseEntity<>(response, HttpStatus.OK);
+            } else {
+                response.put("message", "用户未关注任何论坛");
+                response.put("success", false);
+                logger.warn("用户 {} 未关注任何论坛", userId);
+                return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception e) {
+            logger.error("获取用户 {} 关注的论坛列表出错，错误信息: {}", userId, e.getMessage(), e);
+            response.put("message", "获取用户关注的论坛列表过程中发生错误");
+            response.put("success", false);
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * 获取所有论坛
+     * @return 响应结果
+     */
+    @GetMapping("/getAllForum")
+    public ResponseEntity<Map<String, Object>> getAllForum() {
+        logger.info("收到获取所有论坛请求");
+        Map<String, Object> response = new HashMap<>();
+        try {
+            List<Forum> allForums = forumImpl.getAllForum();
+            if (!allForums.isEmpty()) {
+                response.put("message", "获取所有论坛列表成功");
+                response.put("success", true);
+                response.put("allForums", allForums);
+                logger.info("所有论坛列表获取成功");
+                return new ResponseEntity<>(response, HttpStatus.OK);
+            } else {
+                response.put("message", "未找到任何论坛");
+                response.put("success", false);
+                logger.warn("未找到任何论坛");
+                return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception e) {
+            logger.error("获取所有论坛列表出错，错误信息: {}", e.getMessage(), e);
+            response.put("message", "获取所有论坛列表过程中发生错误");
+            response.put("success", false);
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+    /**
+     * 根据论坛名称获取论坛列表，并返回每个论坛的帖子数量
+     * @param name 论坛名称
+     * @return 响应结果
+     */
+    @GetMapping("/getAllForumByName")
+    public ResponseEntity<Map<String, Object>> getAllForumByName(@RequestParam String name) {
+        logger.info("收到根据名称 {} 查询论坛列表的请求", name);
+        Map<String, Object> response = new HashMap<>();
+        try {
+            List<Map<String, Object>> forumsWithPostCount = forumImpl.getAllForumByNameWithPostCount(name);
+            if (!forumsWithPostCount.isEmpty()) {
+                response.put("message", "根据名称查询论坛列表成功");
+                response.put("success", true);
+                response.put("forums", forumsWithPostCount);
+                logger.info("根据名称 {} 查询论坛列表成功", name);
+                return new ResponseEntity<>(response, HttpStatus.OK);
+            } else {
+                response.put("message", "未找到匹配名称的论坛");
+                response.put("success", false);
+                logger.warn("未找到名称为 {} 的论坛", name);
+                return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception e) {
+            logger.error("根据名称 {} 查询论坛列表出错，错误信息: {}", name, e.getMessage(), e);
+            response.put("message", "根据名称查询论坛列表过程中发生错误");
             response.put("success", false);
             return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }
