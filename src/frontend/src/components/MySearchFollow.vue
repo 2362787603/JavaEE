@@ -1,7 +1,7 @@
 <template>
     <div class="wholeComponent">
         <div class="titleLine">
-            <div v-for="(showimage, index) in props.getimages" :key="index" class="image-row">
+            <div v-for="(showimage, index) in getimages" :key="index" class="image-row">
                 <el-image
                     :src="getImageUrl(showimage)" 
                     :alt="`Image ${index + 1}`" 
@@ -24,12 +24,19 @@
 <script setup>
 
 import { defineProps,ref} from 'vue';
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 // Define props
 const props = defineProps({
   SearchForum: {
     type:Array,
     default: null
+  },
+  userId: {
+    type:String,
+    default:"1"
   },
   getimages: {
     type: Array,
@@ -53,17 +60,18 @@ let getimages=ref([])
 let getnames=ref([])
 let getpostnum=ref([])
 let follownum=ref([])
-console.log(props)
-for(const forum of props.SearchForum){
-  getimages.value.push('PostImage.png')
-  getnames.value.push(forum.name)
-  getpostnum.value.push(forum.post_count)
-  follownum.value.push(forum.follow_count)
-}
-
 let buttonContent=ref([])
-for(let i = 0;i < props.SearchForum.length;i ++ ){
-    buttonContent.value.push('取消关注');
+if(props.SearchForum != null){
+  for(const forum of props.SearchForum){
+    getimages.value.push('PostImage.png')
+    getnames.value.push(forum.name)
+    getpostnum.value.push(forum.post_count)
+    follownum.value.push(forum.follow_count)
+  }
+
+  for(let i = 0;i < props.SearchForum.length;i ++ ){
+      buttonContent.value.push('进入论坛');
+  }
 }
 
 const getImageUrl = (imageName) => {
@@ -76,14 +84,12 @@ const getImageUrl = (imageName) => {
 }
 
 const changeFollow = (index) =>{
-    if(buttonContent.value[index] == '取消关注'){
-        follownum.value[index] --;
-        buttonContent.value[index] = '关注';
-    }
-    else if(buttonContent.value[index] == '关注'){
-        follownum.value[index] ++;
-        buttonContent.value[index] = '取消关注';
-    }
+  router.push({
+      path:'/post',
+      query: {
+        userId: props.userId,
+        forumId:props.SearchForum[index].id
+  }})
 }
 
 </script>

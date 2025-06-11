@@ -61,7 +61,7 @@ public class PostDaoImpl implements PostDao {
     }
 
     @Override
-    public List<Post> getAllUserPost(Integer userID) {
+    public List<Post> getAllUserPost(String userID) {
         String sql = "SELECT post.*,u.userName FROM post JOIN users u ON u.userId=post.user_Id WHERE user_id = ? ORDER BY post.create_time DESC";
         return jdbc.query(sql, postMapper, userID);
     }
@@ -69,6 +69,12 @@ public class PostDaoImpl implements PostDao {
     @Override
     public int likePost(Integer postID) {
         String sql = "UPDATE post SET like_number = like_number + 1 WHERE id = ?";
+        return jdbc.update(sql, postID);
+    }
+
+    @Override
+    public int cancleLikePost(Integer postID){
+        String sql = "UPDATE post SET like_number = like_number - 1 WHERE id = ?";
         return jdbc.update(sql, postID);
     }
 

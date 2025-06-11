@@ -41,7 +41,7 @@
         <div class="Mytitle">
           <p class="createMyPostTitle">创建新帖</p>
         </div>
-        <PostCreateInput class="contentInput"/>
+        <PostCreateInput class="contentInput" :userId="userId" :forumId="forumId"/>
       </div>
     </div>
   </div>
@@ -50,15 +50,30 @@
 <script setup>
 import PostCreateInput from '@/components/PostCreateInput.vue';
 import HotSearch from '@/components/HotSearch.vue';
-import { ref } from 'vue'
+import { ref,computed,reactive,onMounted} from 'vue'
+import { useRoute } from 'vue-router'
+import axios from 'axios'
+
+const route = useRoute()
+
+const userId = computed(() => {
+  const raw = route.query.userId
+  if (!raw) return ''               // 没有就返回空字符串
+  return raw
+})
+const forumId = computed(() => {
+  const raw = route.query.forumId
+  if (!raw) return ''               // 没有就返回空字符串
+  return raw
+})
 
 const showimage1 = ref('BackGround.png')
 const showimage2 = ref('PostImage.png')
-const postname = ref('飧筱刅吧')
-const nowFollow = ref('取消关注')
-const postNum = ref(514)
-const followNum = ref(114)
-const introduction = ref('多平台的怪物猎人粉丝和谐讨论贴吧')
+let postname = ref('飧筱刅吧')
+let nowFollow = ref('取消关注')
+let postNum = ref(514)
+let followNum = ref(114)
+let introduction = ref('多平台的怪物猎人粉丝和谐讨论贴吧')
 
 const getImageUrl = (imageName) => {
   try {
@@ -69,15 +84,71 @@ const getImageUrl = (imageName) => {
   }
 }
 
-const ChangeFollow = () => {
-  if (nowFollow.value === '取消关注') {
-    nowFollow.value = '关注'
-    followNum.value--;
-  } else {
-    nowFollow.value = '取消关注'
-    followNum.value++;
-  }
+const ChangeFollow = async () => {
+    if(nowFollow.value === '取消关注'){
+        nowFollow.value = '关注'
+
+        let deleteForm = reactive({
+            userId: userId.value,
+            forumId: Number(forumId.value)
+        })
+        const{data:userdata,status:userstatus} = await axios.delete(
+            'http://localhost:8080/forum/follow', 
+            {
+                data:deleteForm,
+                validateStatus: () => true
+            })
+        if(userstatus != 200) console.log(userdata)
+
+        followNum.value --;
+    }
+    else{
+        nowFollow.value = '取消关注'
+
+        let deleteForm = reactive({
+            userId: userId.value,
+            forumId: Number(forumId.value)
+        })
+        const{data:userdata,status:userstatus} = await axios.post(
+            'http://localhost:8080/forum/follow', deleteForm,
+            {
+            validateStatus: () => true
+            })
+        if(userstatus != 200) console.log(userdata)
+
+        followNum.value ++;
+    }
 }
+
+onMounted(async ()=>{
+    console.log('Post View Start')
+    const { data, status } = await axios.get(
+        'http://localhost:8080/forum/search/'+forumId.value, 
+        {
+        validateStatus: () => true
+        })
+
+    if(status == 200 ){
+        postname.value=data.forum.name
+        postNum.value=data.forum.postCount == null?0:data.forum.postCount
+        followNum.value=data.forum.followCount == null?0:data.forum.followCount
+        introduction.value=data.forum.introduction
+    }
+
+    const{data:followdata,status:followstatus} = await axios.get(
+    'http://localhost:8080/forum/isUserFollow', 
+    {
+    params: {
+        userId: userId.value,
+        forum_id: forumId.value
+    },
+    validateStatus: () => true
+    })
+    if(followstatus == 200){
+        nowFollow.value = (followdata.isFollowed == true?'取消关注':'关注')
+    }
+})
+
 </script>
 
 <style scoped>

@@ -28,6 +28,7 @@ public class CommentDaoImpl implements CommentDao {
             c.setCommentID(rs.getInt("comment_id"));
             c.setCommentContent(rs.getString("comment_content"));
             c.setLikeNumber(rs.getInt("like_number"));
+            c.setCreateTime(rs.getTimestamp("create_time").toLocalDateTime());
             return c;
         }
     };
@@ -35,8 +36,8 @@ public class CommentDaoImpl implements CommentDao {
     @Override
     public int createNewComment(Comment comment) {
         String sql = """
-            INSERT INTO comment(user_id, post_id, comment_id, comment_content, like_number)
-            VALUES (?, ?, ?, ?, 0)
+            INSERT INTO comment(user_id, post_id, comment_id, comment_content, like_number,create_time)
+            VALUES (?, ?, ?, ?, 0,NOW())
         """;
         return jdbc.update(sql,
                 comment.getUserID(),
@@ -61,6 +62,12 @@ public class CommentDaoImpl implements CommentDao {
     @Override
     public int likeComment(Integer commentID) {
         String sql = "UPDATE comment SET like_number = like_number + 1 WHERE id = ?";
+        return jdbc.update(sql, commentID);
+    }
+
+    @Override
+    public int cancelLikeComment(Integer commentID){
+        String sql = "UPDATE comment SET like_number = like_number - 1 WHERE id = ?";
         return jdbc.update(sql, commentID);
     }
 }

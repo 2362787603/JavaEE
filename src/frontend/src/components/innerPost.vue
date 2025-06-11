@@ -2,9 +2,9 @@
     <div class="wholeComponent">
         <div class="masterPost">
             <div class="masterContent">
-                <masterPost/>
-                <div v-for="i in range(0,10)" :key="i" class="myLike">
-                    <PostComment />
+                <masterPost :post="props.post" :userId="props.userId" :forumId="props.forumId"/>
+                <div v-for="i in range(0,commentList.length)" :key="i" class="myLike">
+                    <PostComment :userId="props.userId" :forumId="props.forumId" :comment="commentList[i]" :masterId="props.post.userID"/>
                 </div>
             </div>
         </div>
@@ -15,10 +15,109 @@
 
 import masterPost from './masterPost.vue';
 import PostComment from './PostComment.vue';
+import '@fortawesome/fontawesome-free/css/all.min.css'
+import { defineProps,onBeforeMount,ref,watch} from 'vue'
+import axios from 'axios'
+let commentList=ref([])
+
+const props = defineProps({
+  post: {
+    type:Object,
+    default:null
+  },
+  userId:{
+    type:[String,Number],
+    default:1
+  },
+  forumId:{
+    type:[String,Number],
+    default:1
+  },
+  isNowNew:{
+    type:Boolean,
+    default:false
+  },
+  isMasterOnly:{
+    type:Boolean,
+    default:false
+  }
+});
 
 const range = (start, end) => {
     return Array.from({length: end - start}, (_, index) => start + index);
 }
+
+const waitForPost = () => {
+  return new Promise((resolve) => {
+    if (props.post && props.post !== null) {
+      resolve(props.post)
+      return
+    }
+    
+    const unwatch = watch(
+      () => props.post,
+      (newPost) => {
+        if (newPost && newPost !== null) {
+          unwatch()
+          resolve(newPost)
+        }
+      }
+    )
+  })
+}
+
+onBeforeMount( async () => {
+
+    const post = await waitForPost()
+    const { data:postdata, status:poststatus } = await axios.get(
+    'http://localhost:8080/comment/post/'+ post.id, 
+    {
+      validateStatus: () => true
+    })
+    if(poststatus == 200){
+        commentList.value=postdata.comments
+        if(props.isNowNew){
+            commentList.value.sort((a, b) => {
+                const timeA = new Date(a.createTime)
+                const timeB = new Date(b.createTime)
+                return timeB - timeA  // 最新在前
+             })
+        }
+        if(props.isMasterOnly){
+             commentList.value = commentList.value.filter(comment => 
+                comment.userID === props.post.userID
+            )
+        }
+      }
+    }
+)
+
+watch(
+  [() => props.isNowNew, () => props.isMasterOnly],
+  async() => {
+    console.log('Props变化，重新应用规则')
+    const { data:postdata, status:poststatus } = await axios.get(
+    'http://localhost:8080/comment/post/'+ props.post.id, 
+    {
+      validateStatus: () => true
+    })
+    if(poststatus == 200){
+        commentList.value=postdata.comments
+        if(props.isNowNew){
+            commentList.value.sort((a, b) => {
+                const timeA = new Date(a.createTime)
+                const timeB = new Date(b.createTime)
+                return timeB - timeA  // 最新在前
+             })
+        }
+        if(props.isMasterOnly){
+             commentList.value = commentList.value.filter(comment => 
+                comment.userID === props.post.userID
+            )
+        }
+      }
+    }
+)
 
 </script>
 

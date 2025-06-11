@@ -1,7 +1,7 @@
 <template>
     <div class="whole-component">
         <div class="content-container">
-          <a :href="href" :to="postpage" @click="handleClick">### 你有没有发现,这是一个测试qq ###</a>
+          <a  @click="handleClick">### {{ titleText }} ###</a>
           <div class="content">
             <contentBlock :text="longText"/>
           </div>
@@ -15,13 +15,13 @@
               <circle cx="12" cy="8" r="5" fill="#CCCCCC"/>
               <path d="M3 22C3 17.58 6.58 14 11 14H13C17.42 14 21 17.58 21 22" stroke="#CCCCCC" stroke-width="2" stroke-linecap="round"/>
             </svg>
-            <a :href="href" :to="postpage" @click="handleClick">{{ username }}</a>
+            <a :href="href" :to="postpage" @click="handleHomeClick">{{ username }}</a>
           </div>
           <div class="comment">
             <span class="comment-icon">
               <i class="fa-regular fa-comment"></i>
             </span>
-            <a :href="href" :to="postpage" @click="handleClick">{{ commentNumber }}条评论</a>
+            <a @click="handleClick">{{ commentNumber }}条评论</a>
           </div>
           <div class="like">
             <span :class="getUserLike" @click="handleLike">
@@ -34,41 +34,120 @@
 </template>
 
 <script name='HomePost' setup>
-import { ref,computed,defineProps} from 'vue'
+import { ref,computed,defineProps, onMounted,reactive} from 'vue'
 import contentBlock from './contentBlock.vue'
 import pictureBlock3 from './pictureBlock3.vue'
 import '@fortawesome/fontawesome-free/css/all.min.css'
+import { useRouter } from 'vue-router'
+import axios from 'axios'
 
-const href=ref('/Test/Test')
-const longText=ref(`这是一个很长的段落文本，可能会超过三行。Vue (发音为 /vjuː/，类似 view) 是一个用于构建用户界面的 JavaScript 框架。它基于标准 HTML、CSS 和 JavaScript 构建，并提供了一个声明式的、组件化的编程模型，帮助你高效地开发用户界面。无论是简单还是复杂的界面，Vue 都可以胜任。Vue 的两个核心功能：声明式渲染和响应性系统。Vue 通过扩展标准 HTML 模板语法来实现声明式渲染，允许我们根据 JavaScript 状态来描述 HTML 应该是什么样子的。当状态改变时，HTML 会自动更新。`);
-const image=['BackGround.png','LoginBackGroud.png','LoginTestFinal.png']
-const username=ref('我不是隼鸮牕')
-const commentNumber=ref(11)
-let likeNumber=ref(114)
+const router = useRouter()
 
 const props = defineProps({
+  post: {
+    type:Object,
+    default:null
+  },
+  userId:{
+    type:[String,Number],
+    default:1
+  },
+  forumId:{
+    type:[String,Number],
+    default:1
+  },
   HasUserLiked: {
     type: Boolean,
     default: () => false
   }
 });
 
+const href=ref('/Test/Test')
+const longText=ref(props.post != null?props.post.content:`这是一个很长的段落文本，可能会超过三行。Vue (发音为 /vjuː/，类似 view) 是一个用于构建用户界面的 JavaScript 框架。它基于标准 HTML、CSS 和 JavaScript 构建，并提供了一个声明式的、组件化的编程模型，帮助你高效地开发用户界面。无论是简单还是复杂的界面，Vue 都可以胜任。Vue 的两个核心功能：声明式渲染和响应性系统。Vue 通过扩展标准 HTML 模板语法来实现声明式渲染，允许我们根据 JavaScript 状态来描述 HTML 应该是什么样子的。当状态改变时，HTML 会自动更新。`);
+const image=['BackGround.png','LoginBackGroud.png','LoginTestFinal.png']
+const titleText=ref(props.post != null?props.post.title:"你有没有发现这是一个测试？")
+let username=ref('我不是隼鸮牕')
+let commentNumber=ref(11)
+let likeNumber=ref(props.post != null?props.post.likeNumber:114)
+
 let isUserLike=ref(props.HasUserLiked)
 
-const handleLike = () => {
+const handleLike = async () => {
   if(!isUserLike.value){
     likeNumber.value=likeNumber.value + 1
+    
+    const likeData = reactive({
+      postID: props.post.id
+    });
+
+    const { data, status } = await axios.post(
+      'http://localhost:8080/post/like', likeData,
+      {
+      validateStatus: () => true
+      })
+    if(status == 200) console.log(data)
+
     isUserLike.value=true
   }
   else{
     likeNumber.value=likeNumber.value - 1
+
+    const likeData = reactive({
+      postID: props.post.id
+    });
+
+    const { data, status } = await axios.post(
+      'http://localhost:8080/post/cancelLike', likeData,
+      {
+      validateStatus: () => true
+      })
+    if(status == 200) console.log(data)
     isUserLike.value=false
   }
+}
+
+const handleClick = () => {
+  router.push({
+        path:'/InnerPost',
+        query: {
+            userId: props.userId,
+            forumId: props.forumId,
+            postId: props.post.id
+    }})
 }
 
 const getUserLike = computed(() =>{
   return isUserLike.value?'like-icon':"not-like-icon"
 })
+
+onMounted(async ()=>{
+    console.log('Inner Home Post Start')
+    await props.post != null
+    const { data, status } = await axios.get(
+        'http://localhost:8080/user/'+props.post.userID, 
+        {
+        validateStatus: () => true
+        })
+
+    if(status == 200 ){
+        username.value=data.user.username
+    }
+
+    let searchForm = reactive({
+      postId: Number(props.post.id)
+    })
+    console.log(searchForm)
+
+    const{data:followdata,status:followstatus} = await axios.post(
+    'http://localhost:8080/post/commentCount', searchForm,
+    {
+      validateStatus: () => true
+    })
+    if(followstatus == 200){
+      commentNumber.value=followdata.count
+    }
+})
+
 
 </script>
 

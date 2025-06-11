@@ -4,7 +4,7 @@
             <div class="modal-content">
                 <button class="close-btn" @click="showModal = false">×</button>
                 <!-- 这里放置你要显示的组件 -->
-                <ChangeMessage :initialUsername="userName" :initialPhone="userPhone" @cancel="showModal = false" @update="showModal = false"/>
+                <ChangeMessage :initialUsername="username" :initialPhone="userPhone" @cancel="showModal = false" @update="getUpdate"/>
             </div>
             </div>
     </Teleport>
@@ -39,7 +39,7 @@
                     </div>
                     <div class="followPart">
                         <div v-if="nowPage === 'MyHomePost'">
-                            <MyHomePost/>
+                            <MyHomePost :userId="userId"/>
                         </div>
                         <div v-if="nowPage === 'MyHomeFollow'">
                             <MyHomeFollow/>
@@ -75,17 +75,28 @@
     import myComment from '@/components/myComment.vue';
     import MyInform from '@/components/MyInform.vue';
 
-    const username=ref('论坛用户_UNKLJSDKUF');
-    const usertime=ref('468');
-    const userposttime=ref('5')
+    import {computed, onBeforeMount} from 'vue'
+    import { useRoute } from 'vue-router'
+    import axios from 'axios'
+
+    const route = useRoute()
+    const userId = computed(() => {
+      const raw = route.query.userId
+      if (!raw) return ''               // 没有就返回空字符串
+      return raw
+    })
+
+    let username=ref('论坛用户_UNKLJSDKUF');
+    let usertime=ref('468');
+    let userposttime=ref('5')
     const showimage=ref('head.png')
     const buttonList=ref(['📝我的论坛','💖我的点赞','➕关注的贴','🗨️我的评论','🔔我的通知']);
     let ishoveredList=ref([true,false,false,false,false]);
     let showModal=ref(false);
-    let userName=ref('论坛用户_114514');
     let userPhone=ref('15684926543');
-
     let nowPage=ref('MyHomePost');
+
+    let AlluserPost=ref([])
 
     const getImageUrl = (imageName) => {
         try {
@@ -109,6 +120,44 @@
     const range = (start, end) => {
         return Array.from({length: end - start}, (_, index) => start + index);
     }
+
+    const getUpdate = async() =>{
+      const { data:userdata, status:userstatus } = await axios.get(
+          'http://localhost:8080/user/'+userId.value, 
+          {
+              validateStatus: () => true
+          }
+      )
+      if(userstatus == 200 ){
+          username.value=userdata.user.username
+      }
+    }
+
+    onBeforeMount(async ()=>{
+
+      console.log("Before Mounted Start!!")
+      const { data:userdata, status:userstatus } = await axios.get(
+          'http://localhost:8080/user/'+userId.value, 
+          {
+              validateStatus: () => true
+          }
+      )
+      if(userstatus == 200 ){
+          username.value=userdata.user.username
+          userPhone.value=userId.value
+      }
+
+      const { data:postdata, status:poststatus } = await axios.get(
+      'http://localhost:8080/post/user/' + userId.value,
+      {
+        validateStatus: () => true
+      })
+      if(poststatus == 200){
+        AlluserPost.value=postdata.posts
+        userposttime.value=AlluserPost.value.length
+      }
+
+    })
 </script>
 
 <style scoped>

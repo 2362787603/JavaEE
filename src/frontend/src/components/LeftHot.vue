@@ -20,9 +20,7 @@
                         <p>{{ username }}</p>
                     </div>       
                 </div>
-                <router-link to="/Test/Test">
-                    <el-button class="personHome">个人主页</el-button>
-                </router-link>
+                <el-button class="personHome" @click="gotoHomePage">个人主页</el-button>
             </div>
         </div>
 
@@ -30,7 +28,7 @@
         <div class="myfollow" v-if="clickBotton === false">
             <div v-for="(Names, index) in displayName" :key="index" class="follow-line">
                 <div v-for="(Name, index2) in Names" :key="index2" class="follow-row">
-                    <div class="follow-row1">
+                    <div class="follow-row1" @click="gotoPost(index,index2)">
                         <p>{{Name}}</p>
                     </div>
                 </div>
@@ -42,7 +40,7 @@
         <div class="myfollow" v-if="clickBotton === true">
             <div v-for="(Names, index) in displayName" :key="index" class="follow-line">
                 <div v-for="(Name, index2) in Names" :key="index2" class="follow-row">
-                    <div class="follow-row1">
+                    <div class="follow-row1" @click="gotoPost(index,index2)">
                         <p>{{Name}}</p>
                     </div>
                 </div>
@@ -92,14 +90,17 @@ const props = defineProps({
   }
 });
 
+let forumNames=ref([])
+let forumList=ref([])
+
 // Limit to maximum 3 images
 const displayName = computed(() => {
-  let namesize = props.getnames.length;
+  let namesize = forumNames.value.length;
   let arraylenth = clickBotton.value == false?Math.min(4,namesize / 2):Math.min(6,namesize / 2);
   let mynames = []
   for(let i = 0;i < arraylenth;i ++ ){
     let nameRow = [];
-    for(let j = i * 2;j < Math.min(namesize,(i + 1) * 2);j ++ ) nameRow.push(props.getnames[j]);
+    for(let j = i * 2;j < Math.min(namesize,(i + 1) * 2);j ++ ) nameRow.push(forumNames.value[j]);
     mynames.push(nameRow);
   } 
   console.log(mynames);
@@ -123,6 +124,23 @@ const createForum = () => {
   }})
 }
 
+const gotoHomePage = () =>{
+  router.push({
+    path:'/HomePage',
+    query: {
+      userId: props.getUserId,
+  }})
+}
+
+const gotoPost = (index,index2) =>{
+  router.push({
+    path:'/post',
+    query: {
+      userId: props.getUserId,
+      forumId:forumList.value[index*2 + index2].id
+  }})
+}
+
 onMounted(async ()=>{
   console.log('Left Hot Start')
   console.log(props.getUserId)
@@ -135,6 +153,19 @@ onMounted(async ()=>{
     console.log("Left Message Get!!");
     console.log(data.user);
     username.value=data.user.username
+  }
+
+  const {data:followdata,status:followstatus} = await axios.get(
+    'http://localhost:8080/forum/getAllUserFollow', 
+    {
+      params: {
+        userId:props.getUserId
+      },
+      validateStatus: () => true
+    })
+  if(followstatus == 200){
+    forumList.value=followdata.followForums
+    for(const value of followdata.followForums) forumNames.value.push(value.name)
   }
 })
 </script>

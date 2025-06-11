@@ -36,7 +36,7 @@ const router = createRouter({
       component: OtherHomePage,
     },
     {
-      path: '/Post/:postId',
+      path: '/Post',
       name: 'Post',
       component: () => import('@/views/PostView.vue'),
       props: true
@@ -54,7 +54,7 @@ const router = createRouter({
       props:true
     },
     {
-      path: '/InnerPost/:postId',
+      path: '/InnerPost',
       name: 'InnerPost',
       component: () => import('@/views/ConcretePost.vue'),
       props: true

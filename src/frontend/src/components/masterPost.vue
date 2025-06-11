@@ -20,7 +20,7 @@
             </div>
             <div class="masterContent">
                 <contentBlock :text=mytext class="contentClass"/>
-                <pictureBlock4 class="pictureClass"/>
+                <pictureBlock4 v-if="haspicture" class="pictureClass"/>
                 <div class="buttonLine">
                     <div class="likePart">
                         <span :class="getUserLike" @click="handleLike">
@@ -34,27 +34,56 @@
             </div>
         </div>
         <div v-if="isPostReply === true">
-            <CommentInput class="myReplyComment"/>
+            <CommentInput class="myReplyComment" :isReplyPost="replyPost" :postId="props.post.id" :userId="props.userId" :forumId="props.post.forumId"/>
         </div>
     </div>
 </template> 
 
 <script setup>
 
-import {ref,computed} from 'vue'
+import {ref,computed,reactive} from 'vue'
 import contentBlock from './contentBlock.vue'
 import pictureBlock4 from './pictureBlock4.vue'
 import CommentInput from './CommentInput.vue'
 
-let masterImage=ref('head.png')
-let masterName=ref('我是恐暴龙11111111111')
-let likeNumber=ref(114)
-let isUserLike=ref(false)
-let posttime=ref('2025-06-04')
-let href=ref('/post/1')
-let mytext=ref('如题😭😭😭,为什么不能，能看自己卖没卖只能你自己回想自己结算界面干了什么，而现在所有材料为0唯一的解释就是你材料被你自己结算的时候点错手动一键卖了。')
+import { defineProps, onBeforeMount,watchEffect,watch} from 'vue'
+import axios from 'axios'
 
-let postTitle = ref('为啥我抓了恐暴龙好像没给奖励呢，我都猫三次了😭😭55555555555555555555555555555555555')
+const props = defineProps({
+  post: {
+    type:Object,
+    default:null
+  },
+  userId:{
+    type:[String,Number],
+    default:1
+  },
+  forumId:{
+    type:[String,Number],
+    default:1
+  }
+});
+
+let masterImage=ref('head.png')
+let masterName=ref('我是恐暴龙')
+let isUserLike=ref(false)
+let haspicture=ref(true)
+
+let likeNumber = ref(0)
+let posttime = ref('')
+let mytext = ref('')
+let postTitle = ref('')
+const replyPost=ref(true)
+
+// 2. 使用watchEffect监听props变化
+watchEffect(() => {
+  if (props.post) {
+    likeNumber.value = props.post.likeNumber || 0
+    posttime.value = props.post.createTime?.split('T')[0] || ''
+    mytext.value = props.post.content || ''
+    postTitle.value = props.post.title || ''
+  }
+})
 let isPostReply = ref(false)
 let nowReply = ref('回复')
 
@@ -79,19 +108,76 @@ const handleClick = () => {
     console.log('跳转到用户页面')
 }
 
-const handleLike = () => {
+const handleLike = async () => {
   if(!isUserLike.value){
     likeNumber.value=likeNumber.value + 1
+    
+    const likeData = reactive({
+      postID: props.post.id
+    });
+
+    const { data, status } = await axios.post(
+      'http://localhost:8080/post/like', likeData,
+      {
+      validateStatus: () => true
+      })
+    if(status == 200) console.log(data)
+
     isUserLike.value=true
   }
   else{
     likeNumber.value=likeNumber.value - 1
+
+    const likeData = reactive({
+      postID: props.post.id
+    });
+
+    const { data, status } = await axios.post(
+      'http://localhost:8080/post/cancelLike', likeData,
+      {
+      validateStatus: () => true
+      })
+    if(status == 200) console.log(data)
     isUserLike.value=false
   }
 }
 
 const getUserLike = computed(() =>{
   return isUserLike.value?'like-icon':"not-like-icon"
+})
+
+const waitForPost = () => {
+  return new Promise((resolve) => {
+    if (props.post && props.post !== null) {
+      resolve(props.post)
+      return
+    }
+    
+    const unwatch = watch(
+      () => props.post,
+      (newPost) => {
+        if (newPost && newPost !== null) {
+          unwatch()
+          resolve(newPost)
+        }
+      }
+    )
+  })
+}
+
+onBeforeMount( async () => {
+
+    await waitForPost()
+
+    const { data:masterdata, status:masterstatus } = await axios.get(
+    'http://localhost:8080/user/'+ props.post.userID, 
+    {
+      validateStatus: () => true
+    })
+    if(masterstatus == 200){
+        masterName.value=masterdata.user.username
+    }
+
 })
 
 </script>

@@ -3,7 +3,7 @@
         <p class="title">热门吧</p>
             <div v-for="(image, index) in displayImages" :key="index" class="image-line">
                 <div v-for="(showimage, index2) in image" :key="index2" class="image-row">
-                    <div class="hotshow" @click="handleInTo">
+                    <div class="hotshow" @click="handleInTo(index,index2)">
                         <el-image
                             :src="getImageUrl(showimage)" 
                             :alt="`Image ${index + 1}`" 
@@ -11,18 +11,18 @@
                             fit="cover"
                         />
                         <div class="hotnameshow">
-                            <p>{{ getnames[index * 5 + index2] }}</p>
+                            <p>{{ allForumList[index * 5 + index2].name }}</p>
                             <div class="comment">
                                 <span class="comment-icon">
                                 <i class="fa-regular fa-comment"></i>
                                 </span>
-                                <p>{{ commentNumber }}</p>
+                                <p>{{ allForumList[index * 5 + index2].followCount }}</p>
                             </div>
                             <div class="follow">
                                 <span class="userfollow" @click="handleLike">
                                 <i class="fa-regular fa-heart"></i>
                                 </span>
-                                <p>{{ followNumber }}</p>
+                                <p>{{ allForumList[index * 5 + index2].postCount }}</p>
                             </div>
                         </div>
                     </div>
@@ -32,33 +32,32 @@
 </template>
 
 <script setup>
-import { computed,defineProps,ref} from 'vue';
+import { computed,onMounted,ref,defineProps} from 'vue';
+import {useRouter } from 'vue-router'
+import axios from 'axios'
 
-let commentNumber = ref(114)
-let followNumber = ref(514)
+const router = useRouter()
 
-// Define props
+let allForumList=ref([])
+
 const props = defineProps({
-  getimages: {
-    type: Array,
-    default: () => ['BackGround.png','LoginBackGroud.png','LoginTestFinal.png','BackGround.png','LoginBackGroud.png','LoginTestFinal.png','BackGround.png','LoginBackGroud.png','LoginTestFinal.png','BackGround.png','LoginBackGroud.png','LoginTestFinal.png','LoginTestFinal.png','BackGround.png','LoginBackGroud.png','LoginTestFinal.png','BackGround.png','LoginBackGroud.png','LoginTestFinal.png','BackGround.png','LoginBackGroud.png','LoginTestFinal.png']
-  },
-  getnames: {
-    type:Array,
-    default: ()=> ['飧筱刅吧','LoginBackGroud.png','LoginTestFinal.png','BackGround.png','LoginBackGroud.png','LoginTestFinal.png','BackGround.png','LoginBackGroud.png','LoginTestFinal.png','BackGround.png','LoginBackGroud.png','LoginTestFinal.png','LoginTestFinal.png','BackGround.png','LoginBackGroud.png','LoginTestFinal.png','BackGround.png','LoginBackGroud.png','LoginTestFinal.png','BackGround.png','LoginBackGroud.png','LoginTestFinal.png']
+  userId: {
+    type:String,
+    default:"1"
   }
 });
 
 // Limit to maximum 3 images
 const displayImages = computed(() => {
-  let imagesize = props.getimages.length;
-  let arraylenth = Math.min(3,imagesize / 5);
+  let imagesize = allForumList.value.length;
+  let arraylenth = Math.min(3,allForumList.value.length / 5);
   let images = []
   for(let i = 0;i < arraylenth;i ++ ){
     let imageRow = [];
-    for(let j = i * 5;j < Math.min(imagesize,(i + 1) * 5);j ++ ) imageRow.push(props.getimages[j]);
+    for(let j = i * 5;j < Math.min(imagesize,(i + 1) * 5);j ++ ) imageRow.push('PostImage.png');
     images.push(imageRow);
   } 
+  console.log(images)
   return images;
 });
 
@@ -74,9 +73,31 @@ const getImageUrl = (imageName) => {
   }
 }
 
-const handleInTo = () => {
-  followNumber.value ++;
+const handleInTo = (index,index2) => {
+  router.push({
+        path:'/Post',
+        query: {
+            userId: props.userId,
+            forumId: allForumList.value[index * 5 + index2].id
+    }})
 }
+
+onMounted(async ()=>{
+  console.log('HotPost Page Start')
+  const { data, status } = await axios.get(
+    'http://localhost:8080/forum/getAllForum', 
+    {
+      validateStatus: () => true
+    })
+  if(status != 200 ){
+    console.log(data.message)
+  }
+  else{
+    console.log(data.allForums)
+    allForumList.value=data.allForums
+    console.log(allForumList.value[0].name)
+  }
+})
 
 </script>
 

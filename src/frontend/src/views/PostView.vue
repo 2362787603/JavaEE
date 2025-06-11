@@ -1,7 +1,7 @@
 <template>
     <div class="wholeComponent">
         <div class="home_scrollable-content">
-            <HotSearch/>
+            <HotSearch :userId="userId"/>
             <div class="titlePart">
                 <div class="backPage">
                     <el-image
@@ -39,29 +39,30 @@
                 <div class="choosePart">
                     <el-button class="hotButton" :class="{'force-hover': isNowHot }" @click="ChangeNowMod()">当前热门</el-button>
                     <el-button class="hotButton" :class="{'force-hover': isNowNew }" @click="ChangeNowMod()">最新内容</el-button>
-                    <el-button class="hotButton"  @click="ChangeNowMod()">我要发贴</el-button>
+                    <el-button class="hotButton"  @click="gotoPost()">我要发贴</el-button>
                     <el-input 
                         type="text" 
                         class="search-input" 
+                        v-model="searchfilter"
                         placeholder="搜索..." 
                     />
-                    <el-button class="search-button">吧内搜索</el-button>
+                    <el-button class="search-button" @click="searchAll">搜索</el-button>
                 </div>
             </div>
             <div class="contentPart">
                 <div v-if="isNowHot === true" class="postlist">
-                    <div v-for="i in range(0,10)" :key="i" class="innerPost">
-                        <inner-home-post class="mypost"/>
+                    <div v-for="i in range(0,postList.length)" :key="i" class="innerPost">
+                        <inner-home-post class="mypost" :post="hotPostList[i]" :userId="userId" :forumId="forumId"/>
                     </div>
                 </div>
                 <div v-if="isNowNew === true" class="postlist">
-                    <div v-for="i in range(0,10)" :key="i" class="innerPost">
-                        <inner-home-post class="mypost"/>
+                    <div v-for="i in range(0,postList.length)" :key="i" class="innerPost">
+                        <inner-home-post class="mypost" :post="newPostList[i]" :userId="userId" :forumId="forumId"/>
                     </div>
                 </div>
                 <div class="rightMessage">
                     <div class="MyMessage">
-                        <MyPostHot/>
+                        <MyPostHot :getUserId="userId"/>
                     </div>
                     <div class="postMessage">
                         <p>本吧信息</p>
@@ -89,19 +90,71 @@
 import HotSearch from '@/components/HotSearch.vue';
 import innerHomePost from '@/components/innerHomePost.vue';
 import MyPostHot from '@/components/MyPostHot.vue';
-import {ref} from 'vue'
+import {ref,computed,onMounted,reactive, onBeforeMount} from 'vue'
+import { useRoute,useRouter } from 'vue-router'
+import axios from 'axios'
+
+const router = useRouter()
+const route = useRoute()
+const userId = computed(() => {
+  const raw = route.query.userId
+  if (!raw) return ''               // 没有就返回空字符串
+  return raw
+})
+const forumId = computed(() => {
+  const raw = route.query.forumId
+  if (!raw) return ''               // 没有就返回空字符串
+  return raw
+})
 
 const showimage1=ref('BackGround.png')
 const showimage2=ref('PostImage.png')
-const postname=ref('飧筱刅吧')
+
+
+let postname=ref('飧筱刅吧')
 let nowFollow=ref('取消关注')
 let postNum=ref(514)
 let followNum=ref(114)
 let introduction=ref('多平台的怪物猎人粉丝和谐讨论贴吧')
 let isNowHot=ref(true)
 let isNowNew=ref(false)
+let postList=ref([])
+let searchfilter=ref('')
+
+const hotPostList = computed(() => {
+    if (!postList.value || !Array.isArray(postList.value)) {
+        return []
+    }
+
+    return postList.value
+        .filter(post => post.content && post.content.includes(''))  // 只保留包含"444"的帖子
+        .sort((a, b) => b.likeNumber - a.likeNumber) 
+    
+})
+
+// 按创建时间降序排序的列表（最新的在前）
+const newPostList = computed(() => {
+    if (!postList.value || !Array.isArray(postList.value)) {
+        return []
+    }
+
+    return postList.value
+        .filter(post => post.content && post.content.includes(''))  // 只保留包含"444"的帖子
+        .sort((a, b) => new Date(b.createTime) - new Date(a.createTime)) 
+    
+})
+
 let masterImage=ref('head.png')
 let masterName=ref('吴安邦是蠢猪')
+
+const searchAll = () => {
+  router.push({
+    path:'/Search',
+    query: {
+      userId: userId.value,
+      txt: searchfilter.value
+  }})
+}
 
 const getImageUrl = (imageName) => {
     try {
@@ -121,13 +174,47 @@ const ChangeNowMod = () => {
     }
 }
 
-const ChangeFollow = () => {
+const gotoPost = () => {
+    router.push({
+        path:'/createPost',
+        query: {
+            userId: userId.value,
+            forumId: forumId.value
+    }})
+}
+
+const ChangeFollow = async () => {
     if(nowFollow.value === '取消关注'){
         nowFollow.value = '关注'
+
+        let deleteForm = reactive({
+            userId: userId.value,
+            forumId: Number(forumId.value)
+        })
+        const{data:userdata,status:userstatus} = await axios.delete(
+            'http://localhost:8080/forum/follow', 
+            {
+                data:deleteForm,
+                validateStatus: () => true
+            })
+        if(userstatus != 200) console.log(userdata)
+
         followNum.value --;
     }
     else{
         nowFollow.value = '取消关注'
+
+        let deleteForm = reactive({
+            userId: userId.value,
+            forumId: Number(forumId.value)
+        })
+        const{data:userdata,status:userstatus} = await axios.post(
+            'http://localhost:8080/forum/follow', deleteForm,
+            {
+            validateStatus: () => true
+            })
+        if(userstatus != 200) console.log(userdata)
+
         followNum.value ++;
     }
 }
@@ -135,6 +222,58 @@ const ChangeFollow = () => {
 const range = (start, end) => {
     return Array.from({length: end - start}, (_, index) => start + index);
 }
+
+onBeforeMount(async () => {
+    const {data:postdata,status:poststatus} = await axios.get(
+        'http://localhost:8080/post/forum/' + forumId.value,
+        {
+            validateStatus: () => true
+        }
+    )
+
+    if(poststatus == 200){
+        postList.value=postdata.posts
+    }
+})
+
+onMounted(async ()=>{
+    console.log('Post View Start')
+    const { data, status } = await axios.get(
+        'http://localhost:8080/forum/search/'+forumId.value, 
+        {
+        validateStatus: () => true
+        })
+
+    if(status == 200 ){
+        postname.value=data.forum.name
+        postNum.value=data.forum.postCount == null?0:data.forum.postCount
+        followNum.value=data.forum.followCount == null?0:data.forum.followCount
+        introduction.value=data.forum.introduction
+        let createUserId = ref(data.forum.userID)
+
+        const{data:userdata,status:userstatus} = await axios.get(
+            'http://localhost:8080/user/'+createUserId.value, 
+            {
+            validateStatus: () => true
+            })
+        if(userstatus == 200){
+            masterName.value=userdata.user.username
+        }
+    }
+
+    const{data:followdata,status:followstatus} = await axios.get(
+    'http://localhost:8080/forum/isUserFollow', 
+    {
+    params: {
+        userId: userId.value,
+        forum_id: forumId.value
+    },
+    validateStatus: () => true
+    })
+    if(followstatus == 200){
+        nowFollow.value = (followdata.isFollowed == true?'取消关注':'关注')
+    }
+})
 
 </script>
 

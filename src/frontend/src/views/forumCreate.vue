@@ -1,7 +1,7 @@
 <template>
     <div class="wholeComponent">
         <div class="home_scrollable-content" ref="scrollContainer">
-            <HotSearch/>
+            <HotSearch :user-id="userId"/>
             <div class="createForm"> <!-- 修正类名拼写错误 -->
                 <div class="form-header">
                     <h1 class="myTitle">创建新论坛</h1>
@@ -17,6 +17,15 @@
 
 import CreateForum from '@/components/CreateForum.vue';
 import HotSearch from '@/components/HotSearch.vue';
+import { useRoute } from 'vue-router'
+import { computed} from 'vue'
+
+const route = useRoute()
+const userId = computed(() => {
+  const raw = route.query.userId
+  if (!raw) return ''               // 没有就返回空字符串
+  return raw
+})
 
 </script>
 

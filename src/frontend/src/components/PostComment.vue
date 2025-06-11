@@ -8,7 +8,7 @@
                     class="homeImage"
                     fit="cover"
                 />
-                <p class="attention">!楼主</p>
+                <p v-if="commentUserId == props.masterId" class="attention">!楼主</p>
                 <a :href="href" @click="handleClick" class="toMaster">{{ masterName }}</a>
             </div>
             <div class="masterContent">
@@ -24,11 +24,11 @@
                     <p class="myComment" @click="changeNowReply">{{ nowReply }}</p>
                 </div>
                 <div v-if="isPostReply === true">
-                    <CommentInput class="myReplyComment"/>
+                    <CommentInput class="myReplyComment" :isReplyPost="replyPost" :commentId="props.comment.id" :userId="props.userId" :forumId="props.forumId"/>
                 </div>
                 <div v-if="hasReply === true">
-                    <div v-for="i in range(0,8)" :key="i" class="myReply">
-                        <ConcretePostComment/>
+                    <div v-for="i in range(0,replyCommentList.length)" :key="i" class="myReply">
+                        <ConcretePostComment :comment="replyCommentList[i]" :userId="props.userId" :forumId="props.forumId" :commentId="props.comment.id"/>
                     </div>
                 </div>
             </div>
@@ -38,21 +38,56 @@
 
 <script setup>
 
-import {ref,computed} from 'vue'
+import {ref,computed,reactive} from 'vue'
 import contentBlock from './contentBlock.vue'
 import CommentInput from './CommentInput.vue'
 import ConcretePostComment from './ConcretePostComment.vue'
+import { defineProps, onBeforeMount,watchEffect,watch} from 'vue'
+import axios from 'axios'
+
+const props = defineProps({
+  comment: {
+    type:Object,
+    default:null
+  },
+  userId:{
+    type:[String,Number],
+    default:1
+  },
+  forumId:{
+    type:[String,Number],
+    default:1
+  },
+  masterId:{
+    type:[String,Number],
+    default:1
+  }
+});
+
 
 let masterImage=ref('head.png')
 let masterName=ref('我是恐暴龙11111111111')
-let likeNumber=ref(114)
+let commentUserId=ref(1)
 let isUserLike=ref(false)
-let posttime=ref('2025-06-04')
 let href=ref('/post/1')
-let mytext=ref('如题😭😭😭,为什么不能，能看自己卖没卖只能你自己回想自己结算界面干了什么，而现在所有材料为0唯一的解释就是你材料被你自己结算的时候点错手动一键卖了。')
 let isPostReply = ref(false)
 let nowReply = ref('回复')
 let hasReply=ref(true)
+let likeNumber = ref(0)
+let posttime = ref('')
+let mytext = ref('')
+let replyCommentList=ref([])
+const replyPost=ref(false)
+
+// 2. 使用watchEffect监听props变化
+watchEffect(() => {
+  if (props.comment) {
+    console.log(props.comment)
+    likeNumber.value = props.comment.likeNumber || 0
+    posttime.value = props.comment.createTime?.split('T')[0] || ''
+    mytext.value = props.comment.commentContent || ''
+  }
+})
 
 const changeNowReply = () => {
     isPostReply.value = !isPostReply.value;
@@ -76,13 +111,36 @@ const handleClick = () => {
     console.log('跳转到用户页面')
 }
 
-const handleLike = () => {
+const handleLike = async () => {
   if(!isUserLike.value){
     likeNumber.value=likeNumber.value + 1
+    
+    const likeData = reactive({
+      ID: props.comment.id
+    });
+
+    const { data, status } = await axios.post(
+      'http://localhost:8080/comment/like', likeData,
+      {
+      validateStatus: () => true
+      })
+    if(status == 200) console.log(data)
+
     isUserLike.value=true
   }
   else{
     likeNumber.value=likeNumber.value - 1
+
+    const likeData = reactive({
+      ID: props.comment.id
+    });
+
+    const { data, status } = await axios.post(
+      'http://localhost:8080/comment/cancelLike', likeData,
+      {
+      validateStatus: () => true
+      })
+    if(status == 200) console.log(data)
     isUserLike.value=false
   }
 }
@@ -94,6 +152,49 @@ const getUserLike = computed(() =>{
 const range = (start, end) => {
     return Array.from({length: end - start}, (_, index) => start + index);
 }
+
+const waitForPost = () => {
+  return new Promise((resolve) => {
+    if (props.comment && props.comment !== null) {
+      resolve(props.comment)
+      return
+    }
+    
+    const unwatch = watch(
+      () => props.comment,
+      (newPost) => {
+        if (newPost && newPost !== null) {
+          unwatch()
+          resolve(newPost)
+        }
+      }
+    )
+  })
+}
+
+onBeforeMount( async () => {
+
+    await waitForPost()
+    const { data:masterdata, status:masterstatus } = await axios.get(
+    'http://localhost:8080/user/'+ props.comment.userID, 
+    {
+      validateStatus: () => true
+    })
+    if(masterstatus == 200){
+        masterName.value=masterdata.user.username
+        commentUserId.value=props.comment.userID
+    }
+
+    const { data:replydata, status:replystatus } = await axios.get(
+    'http://localhost:8080/comment/reply/'+ props.comment.id, 
+    {
+      validateStatus: () => true
+    })
+    if(replystatus == 200){
+        replyCommentList.value=replydata.replies
+    }
+
+})
 
 </script>
 

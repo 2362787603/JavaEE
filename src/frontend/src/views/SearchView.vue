@@ -1,7 +1,7 @@
 <template>
     <div class="wholeComponent">
         <div class="home_scrollable-content">
-            <HotSearch/>
+            <HotSearch :user-id="MyuserId"/>
             <div class="titlePart">
                 <div class="choosePart">
                     <el-button class="hotButton" :class="{'force-hover': isNowHot }" @click="ChangeNowMod()">搜索帖子</el-button>
@@ -10,16 +10,16 @@
             </div>
             <div class="contentPart">
                 <div v-if="isNowHot === true" class="postlist">
-                    <div v-for="i in range(0,10)" :key="i" class="innerPost">
-                        <HomePost class="mypost"/>
+                    <div v-for="i in range(0,allpostList.length)" :key="i" class="innerPost">
+                        <HomePost class="mypost" :post="allpostList[i]" :userId="MyuserId"/>
                     </div>
                 </div>
                 <div v-if="isNowNew === true" class="followList">
-                    <MySearchFollow class="mypost" :SearchForum="mySearchForum"/>
+                    <MySearchFollow class="mypost" :SearchForum="mySearchForum" :userId="MyuserId"/>
                 </div>
                 <div class="rightMessage">
                     <div class="MyMessage">
-                        <MyPostHot :getUserId="userId"/>
+                        <MyPostHot :getUserId="MyuserId"/>
                     </div>
                 </div>
             </div>
@@ -32,15 +32,17 @@ import HotSearch from '@/components/HotSearch.vue';
 import MyPostHot from '@/components/MyPostHot.vue';
 import HomePost from '@/components/HomePost.vue';
 import MySearchFollow from '@/components/MySearchFollow.vue';
-import {ref,computed,reactive} from 'vue'
+import {ref,computed,reactive, onBeforeMount} from 'vue'
 import { useRoute } from 'vue-router'
 import axios from 'axios'
 
 const route = useRoute()
 let isNowHot=ref(true)
 let isNowNew=ref(false)
+let mySearchForum=ref(null)
+let allpostList=ref([])
 
-const userId = computed(() => {
+const MyuserId = computed(() => {
   const raw = route.query.userId
   if (!raw) return 1               // 没有就返回空字符串
   return raw
@@ -52,6 +54,7 @@ const txt = computed(() => {
   return raw
 })
 
+/*
 const handleForumSearch = async () => {
   try {
     let SendForumSearchForm = reactive({
@@ -64,7 +67,7 @@ const handleForumSearch = async () => {
         {
             validateStatus: () => true,
             params: {
-                name: txt.value // 参数名为name，值为1
+                name: txt.value
             }
         }
     )
@@ -75,8 +78,7 @@ const handleForumSearch = async () => {
     return null;
   }
 }
-
-let mySearchForum=ref(handleForumSearch())
+*/
 
 const ChangeNowMod = () => {
     if(isNowHot.value == true){
@@ -90,6 +92,39 @@ const ChangeNowMod = () => {
 const range = (start, end) => {
     return Array.from({length: end - start}, (_, index) => start + index);
 }
+
+
+onBeforeMount(async ()=>{
+    let SendForumSearchForm = reactive({
+      searchName:txt
+    })
+    console.log(SendForumSearchForm)
+
+    console.log("Before Mounted Start!!")
+    const { data, status } = await axios.get(
+        'http://localhost:8080/forum/getAllForumByName', 
+        {
+            validateStatus: () => true,
+            params: {
+                name: txt.value
+            }
+        }
+    )
+    console.log(data)
+    if(status == 200 )mySearchForum.value = data.forums
+
+    let searchPostForm = reactive({
+      searchName:txt.value
+    })
+    const { data:alldata, status:allstatus } = await axios.post(
+    'http://localhost:8080/post/search/byTitle', searchPostForm,
+    {
+      validateStatus: () => true
+    })
+    if(allstatus == 200){
+        allpostList.value=alldata.posts
+    }
+})
 
 </script>
 

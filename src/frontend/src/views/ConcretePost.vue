@@ -1,7 +1,7 @@
 <template>
     <div class="wholeComponent">
         <div class="home_scrollable-content" ref="scrollContainer">
-            <HotSearch/>
+            <HotSearch :user-id="userId"/>
             <div class="titlePart">
                 <el-image
                     :src="getImageUrl(showimage1)" 
@@ -21,8 +21,9 @@
                         type="text" 
                         class="search-input" 
                         placeholder="搜索..." 
+                        v-model="searchtxt"
                 />
-                <el-button class="search-button">吧内搜索</el-button>
+                <el-button class="search-button" @click="searchAll">搜索</el-button>
             </div>
             <div class="choosePart">
                 <el-button class="searchpartbutton" :class="{'force-hover': isNowHot }" @click="ChangeNowMod()">所有内容</el-button>
@@ -30,10 +31,10 @@
                 <el-button class="searchpartbutton" :class="{'force-hover': isNowNew }" @click="isNowNew = !isNowNew">时间倒序</el-button>
             </div>
             <div class="contentPart">
-                <innerPost class="myInnerPost"/>
+                <innerPost class="myInnerPost" :post="post" :userId="userId" :forumId="forumId" :isNowNew="isNowNew" :is-master-only="isNowOnly"/>
                 <div class="rightMessage" ref="rightMessage">
                     <div class="MyMessage">
-                        <MyPostHot class="myHot"/>
+                        <MyPostHot class="myHot" :getUserId="userId"/>
                     </div>
                 </div>
             </div>
@@ -42,10 +43,35 @@
 </template>
 
 <script setup>
-import {ref, onMounted, onUnmounted} from 'vue'
+import {ref, onMounted, onUnmounted, onBeforeMount,computed,reactive} from 'vue'
 import HotSearch from '@/components/HotSearch.vue';
 import innerPost from '@/components/innerPost.vue';
 import MyPostHot from '@/components/MyPostHot.vue';
+import { useRoute ,useRouter} from 'vue-router'
+import axios from 'axios'
+
+const route = useRoute()
+const router = useRouter()
+
+const userId = computed(() => {
+  const raw = route.query.userId
+  if (!raw) return ''               // 没有就返回空字符串
+  return raw
+})
+
+const forumId = computed(() => {
+  const raw = route.query.forumId
+  if (!raw) return ''               // 没有就返回空字符串
+  return raw
+})
+
+const postId = computed(() => {
+  const raw = route.query.postId
+  if (!raw) return ''               // 没有就返回空字符串
+  return raw
+})
+
+let post=ref(null)
 
 const scrollContainer = ref(null);
 const rightMessage = ref(null);
@@ -57,6 +83,7 @@ let postname = ref('飧筱刅吧');
 let isNowHot = ref(true);
 let isNowOnly = ref(false);
 let isNowNew = ref(false);
+let searchtxt = ref('')
 
 const getImageUrl = (imageName) => {
     try {
@@ -67,12 +94,38 @@ const getImageUrl = (imageName) => {
     }
 }
 
-const ChangeFollow = () => {
+const ChangeFollow = async () => {
     if(nowFollow.value === '取消关注'){
-        nowFollow.value = '关注';
+        nowFollow.value = '关注'
+
+        let deleteForm = reactive({
+            userId: userId.value,
+            forumId: Number(forumId.value)
+        })
+        const{data:userdata,status:userstatus} = await axios.delete(
+            'http://localhost:8080/forum/follow', 
+            {
+                data:deleteForm,
+                validateStatus: () => true
+            })
+        if(userstatus != 200) console.log(userdata)
+
         followNum.value --;
-    } else {
-        nowFollow.value = '取消关注';
+    }
+    else{
+        nowFollow.value = '取消关注'
+
+        let deleteForm = reactive({
+            userId: userId.value,
+            forumId: Number(forumId.value)
+        })
+        const{data:userdata,status:userstatus} = await axios.post(
+            'http://localhost:8080/forum/follow', deleteForm,
+            {
+            validateStatus: () => true
+            })
+        if(userstatus != 200) console.log(userdata)
+
         followNum.value ++;
     }
 }
@@ -85,6 +138,15 @@ const ChangeNowMod = () => {
         isNowHot.value = true;
         isNowOnly.value = false;
     }
+}
+
+const searchAll = () => {
+  router.push({
+    path:'/Search',
+    query: {
+      userId: userId.value,
+      txt: searchtxt.value
+  }})
 }
 
 
@@ -114,12 +176,53 @@ const handleScroll = () => {
     }
 }
 
+onBeforeMount( async () => {
+
+    const { data:postdata, status:poststatus } = await axios.get(
+    'http://localhost:8080/post/'+postId.value, 
+    {
+      validateStatus: () => true
+    })
+    if(poststatus == 200){
+        post=postdata.post
+    }
+
+    console.log('Post View Start')
+    const { data, status } = await axios.get(
+        'http://localhost:8080/forum/search/'+forumId.value, 
+        {
+        validateStatus: () => true
+        })
+
+    if(status == 200 ){
+        postname.value=data.forum.name
+        postNum.value=data.forum.postCount == null?0:data.forum.postCount
+        followNum.value=data.forum.followCount == null?0:data.forum.followCount
+    }
+
+    const{data:followdata,status:followstatus} = await axios.get(
+    'http://localhost:8080/forum/isUserFollow', 
+    {
+    params: {
+        userId: userId.value,
+        forum_id: forumId.value
+    },
+    validateStatus: () => true
+    })
+    if(followstatus == 200){
+        nowFollow.value = (followdata.isFollowed == true?'取消关注':'关注')
+    }
+
+})
+
 onMounted(() => {
     if (scrollContainer.value) {
         scrollContainer.value.addEventListener('scroll', handleScroll);
         // 初始调用一次以设置正确的位置
         handleScroll();
     }
+
+
 });
 
 onUnmounted(() => {

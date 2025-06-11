@@ -8,14 +8,45 @@
             type="text" 
             class="search-input" 
             placeholder="搜索..." 
+            v-model="searchfilter"
             />
-            <el-button class="search-button">论坛搜索</el-button>
+            <el-button class="search-button" @click="searchAll">论坛搜索</el-button>
         </div>
     </div>
 </template>
 
 <script setup>
+import {ref,defineProps,watch,computed} from 'vue';
+import {useRouter } from 'vue-router'
+const router = useRouter()
 
+const props = defineProps({
+  userId: {
+    type:String ,
+    default:null
+  }
+});
+
+const safeUserId = computed(() => {
+  return props.userId || null
+})
+
+// 监听计算属性变化
+watch(safeUserId, (newUserId) => {
+  if (newUserId) {
+    console.log('安全userId更新:', newUserId)
+  }
+})
+
+let searchfilter=ref('')
+const searchAll = () => {
+  router.push({
+    path:'/Search',
+    query: {
+      userId: safeUserId.value,
+      txt: searchfilter.value
+  }})
+}
 
 </script>
 

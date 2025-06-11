@@ -14,10 +14,12 @@ public interface PostDao {
     List<Post> getAllPostInForum(Integer forumID);
 
     // 查某个用户的所有帖子
-    List<Post> getAllUserPost(Integer userID);
+    List<Post> getAllUserPost(String userID);
 
     // 帖子点赞：+1，返回更新行数
     int likePost(Integer postID);
+
+    int cancleLikePost(Integer postID);
 
     String testConnection();
 

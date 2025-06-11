@@ -20,24 +20,58 @@
             <p class="myComment" @click="changeCommentReply()">{{ nowCommentList}}</p>
         </div>
         <div v-if="nowReplyButton === true">
-            <CommentInput class="CommentReply"/>
+            <CommentInput class="CommentReply" :isReplyReply="isReplyReply" :replyName="replyName" :isReplyPost="replyPost" :commentId="props.commentId" :userId="props.userId" :forumId="props.forumId"/>
         </div>
     </div>
 </template>
 
 <script setup>
-import {ref,computed} from 'vue'
+import {ref,computed,reactive} from 'vue'
 import CommentInput from './CommentInput.vue'
+import { defineProps, onBeforeMount,watchEffect,watch} from 'vue'
+import axios from 'axios'
+
+const props = defineProps({
+  comment: {
+    type:Object,
+    default:null
+  },
+  userId:{
+    type:[String,Number],
+    default:1
+  },
+  forumId:{
+    type:[String,Number],
+    default:1
+  },
+  commentId:{
+    type:[String,Number],
+    default:1
+  }
+});
+
 
 let replyName=ref('myName')
 let masterImage=ref('head.png')
 let isUserLike=ref(false)
-let nowLikeNumber=ref(14)
-let publishTime=ref('2026-09-11')
 let nowReplyButton=ref(false)
 let nowCommentList=ref('回复')
-let replyComment=ref('现在刚过灭尽龙，这个任务单纯打架的，都打了二十分钟，还失败了一次，想到刷材料做装备，感觉都要累死了。而且这游戏虽然怪物比较笨，也不疯狗，但是角色性能更低，硬直太大了，每次都是被一巴掌拍倒在地上滚半天起不来，然后对面再一砸就没了，而且有时候他向我这边扑过来，我都躲过去了，结果很长时间都只能扶着腿摇摇晃晃走着。')
 
+let nowLikeNumber = ref(0)
+let publishTime = ref('')
+let replyComment = ref('')
+const replyPost=ref(false)
+const isReplyReply=ref(true)
+
+// 2. 使用watchEffect监听props变化
+watchEffect(() => {
+  if (props.comment) {
+    console.log(props.comment)
+    nowLikeNumber.value = props.comment.likeNumber || 0
+    publishTime.value = props.comment.createTime?.split('T')[0] || ''
+    replyComment.value = props.comment.commentContent || ''
+  }
+})
 
 const changeCommentReply = () => {
     // 确保索引有效
@@ -59,13 +93,37 @@ const getImageUrl = (imageName) => {
     }
 }
 
-const handleLike = () => {
+
+const handleLike = async () => {
   if(!isUserLike.value){
     nowLikeNumber.value=nowLikeNumber.value + 1
+    
+    const likeData = reactive({
+      ID: props.comment.id
+    });
+
+    const { data, status } = await axios.post(
+      'http://localhost:8080/comment/like', likeData,
+      {
+      validateStatus: () => true
+      })
+    if(status == 200) console.log(data)
+
     isUserLike.value=true
   }
   else{
     nowLikeNumber.value=nowLikeNumber.value - 1
+
+    const likeData = reactive({
+      ID: props.comment.id
+    });
+
+    const { data, status } = await axios.post(
+      'http://localhost:8080/comment/cancelLike', likeData,
+      {
+      validateStatus: () => true
+      })
+    if(status == 200) console.log(data)
     isUserLike.value=false
   }
 }
@@ -73,6 +131,40 @@ const handleLike = () => {
 const getUserLike = computed(() =>{
   return isUserLike.value?'like-icon':"not-like-icon"
 })
+
+const waitForPost = () => {
+  return new Promise((resolve) => {
+    if (props.comment && props.comment !== null) {
+      resolve(props.comment)
+      return
+    }
+    
+    const unwatch = watch(
+      () => props.comment,
+      (newPost) => {
+        if (newPost && newPost !== null) {
+          unwatch()
+          resolve(newPost)
+        }
+      }
+    )
+  })
+}
+
+onBeforeMount( async () => {
+
+    await waitForPost()
+    const { data:masterdata, status:masterstatus } = await axios.get(
+    'http://localhost:8080/user/'+ props.comment.userID, 
+    {
+      validateStatus: () => true
+    })
+    if(masterstatus == 200){
+        replyName.value=masterdata.user.username
+    }
+
+})
+
 </script>
 
 <style scoped>

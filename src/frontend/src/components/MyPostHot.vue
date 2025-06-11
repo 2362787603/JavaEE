@@ -30,7 +30,7 @@
         <div class="myfollow" v-if="clickBotton === false">
             <div v-for="(Names, index) in displayName" :key="index" class="follow-line">
                 <div v-for="(Name, index2) in Names" :key="index2" class="follow-row">
-                    <div class="follow-row1">
+                    <div class="follow-row1" @click="gotoPost(index,index2)">
                         <p>{{Name}}</p>
                     </div>
                 </div>
@@ -42,7 +42,7 @@
         <div class="myfollow" v-if="clickBotton === true">
             <div v-for="(Names, index) in displayName" :key="index" class="follow-line">
                 <div v-for="(Name, index2) in Names" :key="index2" class="follow-row">
-                    <div class="follow-row1">
+                    <div class="follow-row1" @click="gotoPost(index,index2)">
                         <p>{{Name}}</p>
                     </div>
                 </div>
@@ -54,7 +54,7 @@
 
         <p class="guessp">猜你喜欢</p>
         <div class="bottonclass">
-            <el-button class="guessbotton2">创建论坛</el-button>
+            <el-button class="guessbotton2" @click="createForum">创建论坛</el-button>
             <el-button class="guessbotton">我的点赞</el-button>
             <el-button class="guessbotton">我的评论</el-button>
         </div>
@@ -62,11 +62,18 @@
 </template>
 
 <script setup>
-import {ref,defineProps,computed} from 'vue';
-const showimage=ref('head.png');
-const username=ref('论坛用户1145141919810');
 
+import {ref,defineProps,computed,onMounted} from 'vue';
+import axios from 'axios'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 let clickBotton=ref(false)
+const showimage=ref('head.png');
+let username = ref(null)
+const hasmorefollow = computed(() => {return props.getnames.length > 8;})
+let forumNames=ref([])
+let forumList=ref([])
 
 const getImageUrl = (imageName) => {
   try {
@@ -78,22 +85,24 @@ const getImageUrl = (imageName) => {
 }
 
 const props = defineProps({
+  getUserId: {
+    type: String ,
+    default: "1"
+  },
   getnames: {
     type:Array,
     default: ()=> ['飧筱刅飧筱刅飧筱刅吧','威吧','终锅衽剾吧','夯箜苜🗡吧','康鸭琲虢吧','低于校花吧','闽柯吧','婼☞吧','勇除铊飞吧']
   }
 });
 
-let hasmorefollow = computed(() => {return props.getnames.length > 8;})
-
 // Limit to maximum 3 images
 const displayName = computed(() => {
-  let namesize = props.getnames.length;
+  let namesize = forumNames.value.length;
   let arraylenth = clickBotton.value == false?Math.min(4,namesize / 2):Math.min(6,namesize / 2);
   let mynames = []
   for(let i = 0;i < arraylenth;i ++ ){
     let nameRow = [];
-    for(let j = i * 2;j < Math.min(namesize,(i + 1) * 2);j ++ ) nameRow.push(props.getnames[j]);
+    for(let j = i * 2;j < Math.min(namesize,(i + 1) * 2);j ++ ) nameRow.push(forumNames.value[j]);
     mynames.push(nameRow);
   } 
   console.log(mynames);
@@ -109,27 +118,58 @@ const showlessimage = () =>{
     clickBotton.value = false;
 }
 
+const createForum = () => {
+  router.push({
+    path:'/createForum',
+    query: {
+      userId: props.getUserId
+  }})
+}
+
+const gotoPost = async (index,index2) =>{
+  await router.push({
+      path: '/post',
+      query: {
+        userId: props.getUserId,
+        forumId: forumList.value[index*2 + index2].id
+      }
+    })
+    
+    // 跳转成功后刷新页面
+    window.location.reload()
+}
+
+onMounted(async ()=>{
+  console.log('Post Hot Start')
+  console.log(props.getUserId)
+  const { data, status } = await axios.get(
+    'http://localhost:8080/user/'+props.getUserId, 
+    {
+      validateStatus: () => true
+    })
+  if(status == 200) {
+    console.log("Left Message Get!!");
+    console.log(data.user);
+    username.value=data.user.username
+  }
+
+  const {data:followdata,status:followstatus} = await axios.get(
+    'http://localhost:8080/forum/getAllUserFollow', 
+    {
+      params: {
+        userId:props.getUserId
+      },
+      validateStatus: () => true
+    })
+  if(followstatus == 200){
+    forumList.value=followdata.followForums
+    for(const value of followdata.followForums) forumNames.value.push(value.name)
+  }
+})
+
 </script>
 
 <style scoped>
-/*
-.LeftHotImage {
-  display: flex;
-  flex-direction: row;
-}
-
-.littlePerson {
-  display: flex;
-  flex-direction: row;
-}
-
-.littlePerson p {
-  margin:0;
-  margin-left:10px;
-  color: #7b7c7c; 
-  font-size: 14px;
-  text-decoration: none;
-}*/
 
 .LeftHotCottent {
   border: 2px solid rgb(249, 248, 248);
@@ -188,7 +228,7 @@ const showlessimage = () =>{
 }*/
 
 .userPhoto {
-    width: 100px;
+    width: 30px;
 }
 
 .personHome {
@@ -205,7 +245,7 @@ const showlessimage = () =>{
   white-space: nowrap; /* 防止文本换行 */
   overflow: hidden; /* 隐藏超出部分 */
   text-overflow: ellipsis; /* 使用省略号表示被截断的文本 */
-  max-width: 55%; /* 确保文本不会超出父容器 */
+  max-width: 90%; /* 确保文本不会超出父容器 */
 }
 
 .profile-button {

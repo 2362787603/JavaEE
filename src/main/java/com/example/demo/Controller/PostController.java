@@ -42,6 +42,8 @@ public class PostController {
         Map<String, Object> resp = new HashMap<>();
         try {
             Post post = new Post();
+            System.out.println(map.keySet());
+            System.out.println(map.values());
             post.setUserID((String) map.get("userID"));
             post.setForumID((Integer) map.get("forumID"));
             post.setTitle((String) map.get("title"));
@@ -113,7 +115,7 @@ public class PostController {
      * 查询某个用户的所有帖子
      */
     @GetMapping("/user/{userID}")
-    public ResponseEntity<Map<String, Object>> getAllUserPost(@PathVariable Integer userID) {
+    public ResponseEntity<Map<String, Object>> getAllUserPost(@PathVariable String userID) {
         Map<String, Object> resp = new HashMap<>();
         try {
             List<Post> list = postDao.getAllUserPost(userID);
@@ -143,6 +145,32 @@ public class PostController {
                 return new ResponseEntity<>(resp, HttpStatus.OK);
             } else {
                 resp.put("message", "点赞失败");
+                resp.put("success", false);
+                return new ResponseEntity<>(resp, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        } catch (Exception e) {
+            logger.error("点赞出错: {}", e.getMessage(), e);
+            resp.put("message", "点赞过程中发生错误");
+            resp.put("success", false);
+            return new ResponseEntity<>(resp, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * 取消帖子点赞
+     */
+    @PostMapping("/cancelLike")
+    public ResponseEntity<Map<String, Object>> cancelLikePost(@RequestBody Map<String, Object> map) {
+        Map<String, Object> resp = new HashMap<>();
+        try {
+            Integer postID = (Integer) map.get("postID");
+            int rows = postDao.cancleLikePost(postID);
+            if (rows > 0) {
+                resp.put("message", "取消点赞成功");
+                resp.put("success", true);
+                return new ResponseEntity<>(resp, HttpStatus.OK);
+            } else {
+                resp.put("message", "取消点赞失败");
                 resp.put("success", false);
                 return new ResponseEntity<>(resp, HttpStatus.INTERNAL_SERVER_ERROR);
             }

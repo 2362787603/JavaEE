@@ -15,4 +15,5 @@ public interface CommentDao {
 
     // 评论点赞：+1
     int likeComment(Integer commentID);
+    int cancelLikeComment(Integer commentID);
 }

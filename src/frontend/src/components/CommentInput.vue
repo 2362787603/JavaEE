@@ -62,9 +62,40 @@
 </template>
 
 <script setup>
-import { ref, defineEmits, defineProps } from 'vue';
+import { ref, defineEmits, defineProps,reactive } from 'vue';
+import axios from 'axios'
+import { useRouter } from 'vue-router'
+const router = useRouter()
 
 const props = defineProps({
+  isReplyReply:{
+    type:Boolean,
+    default:false
+  },
+  replyName:{
+    type:String,
+    default:""
+  },
+  isReplyPost:{
+    type:Boolean,
+    default:true
+  },
+  commentId:{
+    type:[String,Number],
+    default:1
+  },
+  postId: {
+    type:[String,Number],
+    default:1
+  },
+  userId:{
+    type:[String,Number],
+    default:1
+  },
+  forumId:{
+    type:[String,Number],
+    default:1
+  },
   placeholder: {
     type: String,
     default: '输入消息...'
@@ -159,6 +190,7 @@ const removeImage = (index) => {
 
 // Insert emoji at cursor position
 const insertEmoji = (emoji) => {
+  console.log(props.commentId)
   const textarea = textareaRef.value;
   const startPos = textarea.selectionStart;
   const endPos = textarea.selectionEnd;
@@ -207,14 +239,29 @@ const emitUpdate = () => {
 };
 
 // Send message
-const sendMessage = () => {
+const sendMessage = async () => {
   // Only send if there's text or images
   if (inputText.value.trim() || uploadedImages.value.length > 0) {
     // Create message data object with text and images
-    const messageData = {
-      text: inputText.value,
-      images: uploadedImages.value.map(img => img.file)
-    };
+
+      const messageData = reactive({
+        userID: String(props.userId),
+        postID: Number(props.postId),
+        commentID: Number(props.isReplyPost === true?0:props.commentId),
+        commentContent: props.isReplyReply?"回复" + props.replyName + " : " + inputText.value:inputText.value/*,
+        images: uploadedImages.value.map(img => img.file)*/
+      });
+
+      const { data, status } = await axios.post(
+      'http://localhost:8080/comment/create',messageData, 
+      {
+        validateStatus: () => true
+      })
+
+      if(status == 200){
+          console.log(data)
+          router.go(0)
+      }
     
     // Emit the message data
     emit('send', messageData);

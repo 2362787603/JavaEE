@@ -117,4 +117,30 @@ public class CommentController {
             return new ResponseEntity<>(resp, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    /**
+     * 取消评论点赞
+     */
+    @PostMapping("/cancelLike")
+    public ResponseEntity<Map<String, Object>> cancelLikeComment(@RequestBody Map<String, Object> map) {
+        Map<String, Object> resp = new HashMap<>();
+        try {
+            Integer commentID = (Integer) map.get("ID");
+            int rows = commentDao.cancelLikeComment(commentID);
+            if (rows > 0) {
+                resp.put("message", "点赞成功");
+                resp.put("success", true);
+                return new ResponseEntity<>(resp, HttpStatus.OK);
+            } else {
+                resp.put("message", "点赞失败");
+                resp.put("success", false);
+                return new ResponseEntity<>(resp, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        } catch (Exception e) {
+            logger.error("评论点赞出错: {}", e.getMessage(), e);
+            resp.put("message", "点赞过程中发生错误");
+            resp.put("success", false);
+            return new ResponseEntity<>(resp, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

@@ -4,6 +4,7 @@
         <el-input 
             type="text" 
             class="search-input" 
+            v-model="titleText"
             placeholder="输入帖子标题..." 
         />
     </div>
@@ -72,9 +73,21 @@
 </template>
 
 <script setup>
-import { ref, defineEmits, defineProps } from 'vue';
+import { ref, defineEmits, defineProps,reactive } from 'vue';
+import { useRouter } from 'vue-router'
+import axios from 'axios'
+
+const router = useRouter()
 
 const props = defineProps({
+  userId: {
+    type:String,
+    default:"1"
+  },
+  forumId: {
+    type: [Number,String],
+    default:1
+  },
   placeholder: {
     type: String,
     default: '说说您的看法...'
@@ -94,10 +107,10 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['update:modelValue', 'send']);
-
 const textareaRef = ref(null);
 const fileInputRef = ref(null);
 const inputText = ref('');
+const titleText = ref('')
 const showEmojiPicker = ref(false);
 const uploadedImages = ref([]);
 
@@ -220,17 +233,33 @@ const emitUpdate = () => {
 };
 
 // Send message
-const sendMessage = () => {
+const sendMessage = async () => {
   // Only send if there's text or images
   if (inputText.value.trim() || uploadedImages.value.length > 0) {
     // Create message data object with text and images
-    const messageData = {
-      text: inputText.value,
-      images: uploadedImages.value.map(img => img.file)
-    };
-    
-    // Emit the message data
-    emit('send', messageData);
+    const messageData = reactive({
+      userID: props.userId,
+      forumID: Number(props.forumId),
+      title: titleText.value,
+      content: inputText.value/*,
+      images: uploadedImages.value.map(img => img.file)*/
+    });
+
+    const { data, status } = await axios.post(
+    'http://localhost:8080/post/create',messageData, 
+    {
+      validateStatus: () => true
+    })
+
+    if(status == 200){
+        console.log(data)
+        router.push({
+            path:'/post',
+            query: {
+                userId: props.userId,
+                forumId:props.forumId
+        }})
+    }
     
     // Clear the input and images
     inputText.value = '';

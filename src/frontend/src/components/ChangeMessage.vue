@@ -108,7 +108,7 @@
 
 <script setup>
 import { ref, reactive, computed,defineProps,defineEmits } from 'vue'
-
+import axios from 'axios'
 const props = defineProps({
   initialUsername: {
     type: String,
@@ -173,14 +173,7 @@ const validatePhone = () => {
     errors.phone = '电话号码不能为空'
     return false
   }
-  
-  // 简单的中国手机号验证
-  const phoneRegex = /^1[3-9]\d{9}$/
-  if (!phoneRegex.test(form.phone)) {
-    errors.phone = '请输入有效的手机号码'
-    return false
-  }
-  
+
   errors.phone = ''
   return true
 }
@@ -238,9 +231,34 @@ const handleSubmit = async () => {
   try {
     isSubmitting.value = true
     submitError.value = ''
+
+    const modifyform1 = {
+      username:form.username
+      // category: forumForm.category  // 如果需要的话
+    }
     
-    // 模拟API调用
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    const { data, status } = await axios.put(
+    'http://localhost:8080/user/' +props.initialPhone + '/username',modifyform1,
+    {
+      validateStatus: () => true
+    })
+    console.log(data)
+    console.log(status)
+
+    if(isChangingPassword.value){
+      const modifyform2 = {
+        password:form.password
+        // category: forumForm.category  // 如果需要的话
+      }
+      
+      const { data:newdata, status:newstatus } = await axios.put(
+      'http://localhost:8080/user/' +props.initialPhone + '/username',modifyform2,
+      {
+        validateStatus: () => true
+      })
+      console.log(newdata)
+      console.log(newstatus)
+    }
     
     // 构建要提交的数据对象
     const updateData = {

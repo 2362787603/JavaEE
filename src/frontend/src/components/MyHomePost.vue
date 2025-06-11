@@ -40,6 +40,10 @@ let showModal=ref(false)
 
 // Define props
 const props = defineProps({
+  userId:{
+    type:String,
+    default:"1"
+  },
   getimages: {
     type: Array,
     default: () => ['BackGround.png','LoginBackGroud.png','LoginTestFinal.png','BackGround.png','LoginBackGroud.png','LoginTestFinal.png','BackGround.png','LoginBackGroud.png','LoginTestFinal.png','BackGround.png','LoginBackGroud.png','LoginTestFinal.png']
@@ -57,6 +61,7 @@ const props = defineProps({
     default: ()=>[234,324,5,23,56,78,22,34,2,3,4,567,8888]
   }
 });
+
 
 const getImageUrl = (imageName) => {
   try {

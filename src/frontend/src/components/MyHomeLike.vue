@@ -29,11 +29,20 @@
 
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed,defineProps} from 'vue';
 import HomePost from './HomePost.vue';
 import LoveComment from './LoveComment.vue';
 
 let nowChoose = ref('PostLike')
+
+const props = defineProps({
+userId: {
+    type: String ,
+    default: "1"
+  }
+});
+
+console.log(props)
 
 // 计算属性来判断当前选择状态
 const isPostLike = computed(() => nowChoose.value === 'PostLike')
@@ -51,6 +60,7 @@ const selectCommentLike = () => {
 const range = (start, end) => {
     return Array.from({length: end - start}, (_, index) => start + index);
 }
+
 
 </script>
 
