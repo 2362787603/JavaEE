@@ -227,4 +227,23 @@ public class ForumImpl implements ForumDao {
             return null;
         }
     }
+
+    /**
+     * 根据用户 ID 搜索论坛
+     * @param userId 用户 ID
+     * @return 包含匹配论坛信息的列表
+     */
+    @Override
+    public List<Forum> getForumByUserId(String userId) {
+        String sql = "SELECT f.*,COUNT(p.id) as post_count FROM forums f LEFT JOIN post p ON f.id = p.forum_id  WHERE f.UserId = ? GROUP BY f.id";
+        forumLogger.info("开始执行根据用户 ID {} 搜索论坛信息的查询，SQL: {}", userId, sql);
+        try {
+            List<Forum> result = jdbcTemplate.query(sql, forumMapper, userId);
+            forumLogger.info("成功根据用户 ID {} 搜索论坛信息，共查询到 {} 条记录", userId, result.size());
+            return result;
+        } catch (Exception e) {
+            forumLogger.error("根据用户 ID {} 搜索论坛信息失败，错误信息: {}", userId, e.getMessage(), e);
+            return null;
+        }
+    }
 }

@@ -21,4 +21,5 @@ public interface ForumDao {
 
 
     List<Map<String, Object>> getAllForumByNameWithPostCount(String name);
+    List<Forum> getForumByUserId(String userId);
 }

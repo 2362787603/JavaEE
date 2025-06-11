@@ -504,4 +504,35 @@ public class ForumController {
             return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    /**
+     * 根据用户 ID 搜索论坛
+     * @param userId 用户 ID
+     * @return 响应结果
+     */
+    @GetMapping("/getForumByUserId")
+    public ResponseEntity<Map<String, Object>> getForumByUserId(@RequestParam String userId) {
+        logger.info("收到根据用户 ID {} 搜索论坛的请求", userId);
+        Map<String, Object> response = new HashMap<>();
+        try {
+            List<Forum> forumList = forumImpl.getForumByUserId(userId);
+            if (forumList != null && !forumList.isEmpty()) {
+                response.put("message", "根据用户 ID 搜索论坛成功");
+                response.put("success", true);
+                response.put("forumList", forumList);
+                logger.info("根据用户 ID {} 搜索论坛成功", userId);
+                return new ResponseEntity<>(response, HttpStatus.OK);
+            } else {
+                response.put("message", "未找到该用户创建的论坛");
+                response.put("success", false);
+                logger.warn("未找到用户 ID {} 创建的论坛", userId);
+                return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception e) {
+            logger.error("根据用户 ID {} 搜索论坛出错，错误信息: {}", userId, e.getMessage(), e);
+            response.put("message", "根据用户 ID 搜索论坛过程中发生错误");
+            response.put("success", false);
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }
