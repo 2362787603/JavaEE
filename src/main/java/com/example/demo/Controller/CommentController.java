@@ -143,4 +143,25 @@ public class CommentController {
             return new ResponseEntity<>(resp, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    /**
+     * 获取某用户的所有评论
+     * （可以用 PathVariable 或者从请求头/Token 中读取当前 userID）
+     */
+    @GetMapping("/user/{userID}")
+    public ResponseEntity<Map<String, Object>> getAllCommentsByUser(@PathVariable String userID) {
+        Map<String, Object> resp = new HashMap<>();
+        try {
+            List<Comment> list = commentDao.getAllCommentsByUser(userID);
+            resp.put("comments", list);
+            resp.put("success", true);
+            return ResponseEntity.ok(resp);
+        } catch (Exception e) {
+            logger.error("获取用户评论出错: {}", e.getMessage(), e);
+            resp.put("message", "查询过程中发生错误");
+            resp.put("success", false);
+            return new ResponseEntity<>(resp, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 }

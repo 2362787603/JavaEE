@@ -70,4 +70,16 @@ public class CommentDaoImpl implements CommentDao {
         String sql = "UPDATE comment SET like_number = like_number - 1 WHERE id = ?";
         return jdbc.update(sql, commentID);
     }
+
+
+
+    // 在 CommentDaoImpl 中实现
+    @Override
+    public List<Comment> getAllCommentsByUser(String userID) {
+        String sql = "SELECT * FROM comment WHERE user_id = ? ORDER BY create_time DESC";
+        return jdbc.query(sql, commentMapper, userID);
+    }
+
+
+
 }
