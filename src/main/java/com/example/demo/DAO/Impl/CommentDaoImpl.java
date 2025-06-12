@@ -80,6 +80,9 @@ public class CommentDaoImpl implements CommentDao {
         return jdbc.query(sql, commentMapper, userID);
     }
 
-
-
+    @Override
+    public Comment getCommentById(Integer commentId) {
+        String sql = "SELECT * FROM comment WHERE id = ?";
+        return jdbc.queryForObject(sql, commentMapper, commentId);
+    }
 }

@@ -20,4 +20,5 @@ public interface CommentDao {
 
     List<Comment> getAllCommentsByUser(String userID);
 
+    Comment getCommentById(Integer commentId);
 }

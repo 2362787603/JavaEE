@@ -164,4 +164,25 @@ public class CommentController {
         }
     }
 
+    @GetMapping("/{commentId}")
+    public ResponseEntity<Map<String, Object>> getCommentById(@PathVariable Integer commentId) {
+        Map<String, Object> resp = new HashMap<>();
+        try {
+            Comment comment = commentDao.getCommentById(commentId);
+            if (comment != null) {
+                resp.put("comment", comment);
+                resp.put("success", true);
+                return new ResponseEntity<>(resp, HttpStatus.OK);
+            } else {
+                resp.put("message", "未找到该评论");
+                resp.put("success", false);
+                return new ResponseEntity<>(resp, HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception e) {
+            logger.error("根据评论 ID 获取评论出错: {}", e.getMessage(), e);
+            resp.put("message", "根据评论 ID 获取评论过程中发生错误");
+            resp.put("success", false);
+            return new ResponseEntity<>(resp, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }
