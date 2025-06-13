@@ -83,7 +83,6 @@
         </div>
       </el-form-item>
     </el-form>
-
   </div>
 </template>
 
@@ -140,33 +139,32 @@ const triggerFileSelect = () => {
 
 // 处理文件变化
 const handleFileChange = (e) => {
-  const file = e.target.files[0]
-  if (!file) return
-  
-  // 验证文件类型
-  const isValidType = ['image/jpeg', 'image/png'].includes(file.type)
-  if (!isValidType) {
-    ElMessage.error('只支持 JPG、PNG 格式的图片')
-    return
-  }
-  
-  // 验证文件大小（2MB以内）
-  const isValidSize = file.size / 1024 / 1024 < 2
-  if (!isValidSize) {
-    ElMessage.error('图片大小不能超过 2MB')
-    return
-  }
-  
-  forumForm.image = file
-  
-  // 创建预览URL
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    forumForm.imageUrl = e.target.result
-  }
-  reader.readAsDataURL(file)
-}
+  const file = e.target.files[0];
+  if (!file) return;
 
+  // 验证文件类型
+  const isValidType = ['image/jpeg', 'image/png'].includes(file.type);
+  if (!isValidType) {
+    ElMessage.error('只支持 JPG、PNG 格式的图片');
+    return;
+  }
+
+  // 验证文件大小（2MB以内）
+  const isValidSize = file.size / 1024 / 1024 < 2;
+  if (!isValidSize) {
+    ElMessage.error('图片大小不能超过 2MB');
+    return;
+  }
+
+  forumForm.image = file;
+
+  // 创建预览URL
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    forumForm.imageUrl = e.target.result;
+  };
+  reader.readAsDataURL(file);
+};
 
 // 提交表单
 const submitForm = async () => {
@@ -179,102 +177,115 @@ const submitForm = async () => {
     }
     
     // 开始提交
-    submitting.value = true
-    
-    // 构建提交数据
-    console.log('用户ID:', userId.value)
+    submitting.value = true;
+
+    let imageId = null;
+    if (forumForm.image) {
+      // 上传图片
+      const formData = new FormData();
+      formData.append('file', forumForm.image);
+      const { data: imageResponse, status: imageStatus } = await axios.post(
+        'http://localhost:8080/image/upload', 
+        formData, 
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          },
+          validateStatus: () => true
+        }
+      );
+
+      if (imageStatus === 200) {
+        imageId = imageResponse.imageId;
+      } else {
+        const errorMessage = imageResponse?.message || `图片上传失败 (错误码: ${imageStatus})`;
+        ElMessage.error(errorMessage);
+        return;
+      }
+    }
+
+    // 构建提交数据，包含图片 ID
     const requestData = {
       userID: userId.value,
       name: forumForm.name,
-      introduction: forumForm.description
-      // category: forumForm.category  // 如果需要的话
-    }
-    
-    console.log('提交论坛数据:', requestData)
-    // 如果有分类信息，取消注释
-    // formData.append('category', forumForm.category)  
-    
-    // 如果有图片文件，取消注释
-    // if (forumForm.image) {
-    //   formData.append('image', forumForm.image)
-    // }
+      introduction: forumForm.description,
+      imageId: imageId
+    };
 
-    
-    // 发送 API 请求
+    // 发送创建论坛的 API 请求
     const { data, status } = await axios.post(
       'http://localhost:8080/forum/create', 
-      requestData,  // 传递 formData 作为请求体
+      requestData, 
       {
         validateStatus: () => true
       }
-    )
-    
-    console.log('响应数据:', data)
-    console.log('响应状态:', status)
-    
+    );
+
+    console.log('响应数据:', data);
+    console.log('响应状态:', status);
+
     // 处理响应
     if (status === 200) {
-      ElMessage.success('论坛创建成功！')
-      
+      ElMessage.success('论坛创建成功！');
+
       // 跳转到主页面
       router.push({
         path: '/MainPage',
         query: {
           loginData: userId.value
         }
-      })
+      });
     } else {
       // 根据不同状态码显示不同错误信息
-      const errorMessage = data?.message || getErrorMessage(status)
-      ElMessage.error(errorMessage)
+      const errorMessage = data?.message || getErrorMessage(status);
+      ElMessage.error(errorMessage);
     }
-    
   } catch (error) {
-    console.error('提交论坛时出错:', error)
-    
+    console.error('提交论坛时出错:', error);
+
     // 处理网络错误或其他异常
     if (error.response) {
       // 服务器响应了错误状态码
-      const status = error.response.status
-      const message = error.response.data?.message || getErrorMessage(status)
-      ElMessage.error(message)
+      const status = error.response.status;
+      const message = error.response.data?.message || getErrorMessage(status);
+      ElMessage.error(message);
     } else if (error.request) {
       // 请求发出但没有收到响应
-      ElMessage.error('网络连接失败，请检查网络连接')
+      ElMessage.error('网络连接失败，请检查网络连接');
     } else {
       // 其他错误
-      ElMessage.error('提交失败，请重试')
+      ElMessage.error('提交失败，请重试');
     }
   } finally {
     // 无论成功失败都要重置提交状态
-    submitting.value = false
+    submitting.value = false;
   }
-}
+};
 
 // 辅助函数：根据状态码获取错误信息
 const getErrorMessage = (status) => {
   switch (status) {
     case 400:
-      return '请求参数错误'
+      return '请求参数错误';
     case 401:
-      return '用户未登录或登录已过期'
+      return '用户未登录或登录已过期';
     case 403:
-      return '没有权限执行此操作'
+      return '没有权限执行此操作';
     case 409:
-      return '论坛名称已存在，请换一个名称'
+      return '论坛名称已存在，请换一个名称';
     case 500:
-      return '服务器内部错误，请稍后重试'
+      return '服务器内部错误，请稍后重试';
     default:
-      return `操作失败 (错误码: ${status})`
+      return `操作失败 (错误码: ${status})`;
   }
-}
+};
 
 // 重置表单
 const resetForm = () => {
-  forumFormRef.value.resetFields()
-  forumForm.imageUrl = ''
-  forumForm.image = null
-}
+  forumFormRef.value.resetFields();
+  forumForm.imageUrl = '';
+  forumForm.image = null;
+};
 </script>
 
 <style scoped>

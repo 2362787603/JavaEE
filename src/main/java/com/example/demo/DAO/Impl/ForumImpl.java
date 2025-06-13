@@ -44,7 +44,7 @@ public class ForumImpl implements ForumDao {
 
     @Override
     public Integer createForum(String userID, String name, String introduction, Integer imageId) {
-        String sql = "INSERT INTO forums (userID, name, introduction, image_id) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO forums (userID, name, introduction, imageId) VALUES (?, ?, ?, ?)";
         forumLogger.info("开始创建论坛，用户ID: {}, 论坛名称: {}, 图片ID: {}, SQL: {}", userID, name, imageId, sql);
         KeyHolder keyHolder = new GeneratedKeyHolder();
         try {

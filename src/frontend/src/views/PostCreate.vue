@@ -190,6 +190,7 @@ onMounted(async ()=>{
   background-color: rgb(253,253,253);
   margin: 0 auto; /* 水平居中 */
   margin-top: -25px;
+  margin-left: 330px;
   min-height: 400px;
   padding-top: 30px; /* 新增内边距，为标题腾出空间 */
   padding-bottom: 20px;
