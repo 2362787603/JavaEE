@@ -5,7 +5,7 @@
                 <div v-for="(showimage, index2) in image" :key="index2" class="image-row">
                     <div class="hotshow" @click="handleInTo(index,index2)">
                         <el-image
-                            :src="getImageUrl(showimage)" 
+                            :src="`http://localhost:8080/image/downloadById/`+allForumList[index * 5 + index2].imageId" 
                             :alt="`Image ${index + 1}`" 
                             class="scaled-image"
                             fit="cover"
@@ -61,17 +61,6 @@ const displayImages = computed(() => {
   return images;
 });
 
-const getImageUrl = (imageName) => {
-  try {
-    // For Vite
-    //return new URL(`../assets/${imageName}`, import.meta.url).href;   
-    // Alternatively, if using webpack
-    return require(`../assets/${imageName}`);
-  } catch (error) {
-    console.error('Error loading image:', error);
-    return ''; // Return empty string or a placeholder image URL
-  }
-}
 
 const handleInTo = (index,index2) => {
   router.push({

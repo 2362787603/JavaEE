@@ -6,7 +6,8 @@ import com.example.demo.Entity.Forum;
 
 
 public interface ForumDao {
-    Integer createForum(String userID, String name, String introduction);
+    // 修改 createForum 方法，添加 imageId 参数
+    Integer createForum(String userID, String name, String introduction, Integer imageId); 
     Forum searchForum(Integer id);
     List<Forum> getAllForum();
     // 添加删除方法

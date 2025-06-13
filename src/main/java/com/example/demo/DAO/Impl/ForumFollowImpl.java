@@ -32,6 +32,7 @@ public class ForumFollowImpl implements ForumFollowDao {
             forum.setName(rs.getString("name"));
             forum.setIntroduction(rs.getString("introduction"));
             forum.setFollowCount(rs.getInt("follow_count"));
+            forum.setImageId(rs.getInt("imageId")); // 新增图片 ID 映射
             return forum;
         }
     };

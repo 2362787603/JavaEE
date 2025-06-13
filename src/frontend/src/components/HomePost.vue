@@ -2,7 +2,7 @@
     <div class="whole-component">
         <div class="post-container">
             <div class="postpicture">
-                <el-image :src="require(`../assets/${imagePath}`)" ></el-image>
+                <el-image :src="`http://localhost:8080/image/downloadById/`+forumimageId" ></el-image>
             </div>
             <div class="postline">
                 <div class="postman">
@@ -77,12 +77,13 @@ const props = defineProps({
   }
 });
 
-const imagePath=ref('PostImage.png')
+
 const postfollow=ref(119)
 let mastername=ref('我不是隼鸮牕')
 let commentNumber=ref(11)
 let masterid=ref(1)
 let postFromName=ref('飧筱刅吧')
+let forumimageId=ref(1)
 let likeNumber = ref(props.post != null?props.post.likeNumber:0)
 let posttime = ref('')
 let longText = ref('')
@@ -227,6 +228,7 @@ onBeforeMount( async () => {
     })
     if(forumstatus == 200){
       postFromName.value=forumdata.forum.name
+      forumimageId.value=forumdata.forum.imageId
     }
 
     const likeData = {

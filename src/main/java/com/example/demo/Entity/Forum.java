@@ -14,4 +14,6 @@ public class Forum {
     private String introduction;
     private Integer followCount;
     private Integer postCount; // 新增帖子数量字段
+
+    private Integer imageId;
 }

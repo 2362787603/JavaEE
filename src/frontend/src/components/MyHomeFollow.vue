@@ -3,7 +3,7 @@
         <div class="titleLine">
             <div v-for="(forum, index) in allPost" :key="index" class="image-row">
                 <el-image
-                    :src="getImageUrl(image)" 
+                    :src="`http://localhost:8080/image/downloadById/`+forum.imageId" 
                     :alt="`Image ${index + 1}`" 
                     class="scaled-image"
                     fit="cover"
@@ -54,21 +54,14 @@ const props = defineProps({
   }
 });
 
-const image='PostImage.png'
+
 let buttonContent=ref([])
 let allPost=ref([])
 for(let i = 0;i < props.getnames.length;i ++ ){
     buttonContent.value.push('取消关注');
 }
 
-const getImageUrl = (imageName) => {
-  try {
-    return require(`../assets/${imageName}`);
-  } catch (error) {
-    console.error('Error loading image:', error);
-    return ''; // Return empty string or a placeholder image URL
-  }
-}
+
 
 const changeFollow = async (index) =>{
     if(buttonContent.value[index] == '取消关注'){

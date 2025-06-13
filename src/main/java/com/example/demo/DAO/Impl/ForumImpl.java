@@ -36,15 +36,16 @@ public class ForumImpl implements ForumDao {
             forum.setName(rs.getString("name"));
             forum.setIntroduction(rs.getString("introduction"));
             forum.setFollowCount(rs.getInt("follow_count"));
-            forum.setPostCount(rs.getInt("post_count")); // 设置帖子数量
+            forum.setPostCount(rs.getInt("post_count")); 
+            forum.setImageId(rs.getInt("imageId")); // 新增图片 ID 映射
             return forum;
         }
     };
 
     @Override
-    public Integer createForum(String userID, String name, String introduction) {
-        String sql = "INSERT INTO forums (userID, name, introduction) VALUES (?, ?, ?)";
-        forumLogger.info("开始创建论坛，用户ID: {}, 论坛名称: {}, SQL: {}", userID, name, sql);
+    public Integer createForum(String userID, String name, String introduction, Integer imageId) {
+        String sql = "INSERT INTO forums (userID, name, introduction, image_id) VALUES (?, ?, ?, ?)";
+        forumLogger.info("开始创建论坛，用户ID: {}, 论坛名称: {}, 图片ID: {}, SQL: {}", userID, name, imageId, sql);
         KeyHolder keyHolder = new GeneratedKeyHolder();
         try {
             jdbcTemplate.update(connection -> {
@@ -52,13 +53,14 @@ public class ForumImpl implements ForumDao {
                 ps.setString(1, userID);
                 ps.setString(2, name);
                 ps.setString(3, introduction);
+                ps.setInt(4, imageId); // 设置图片 ID
                 return ps;
             }, keyHolder);
             Integer forumId = keyHolder.getKey() != null ? keyHolder.getKey().intValue() : null;
-            forumLogger.info("成功创建论坛，用户ID: {}, 论坛ID: {}", userID, forumId);
+            forumLogger.info("成功创建论坛，用户ID: {}, 论坛ID: {}, 图片ID: {}", userID, forumId, imageId);
             return forumId;
         } catch (Exception e) {
-            forumLogger.error("创建论坛失败，用户ID: {}, 论坛名称: {}, 错误信息: {}", userID, name, e.getMessage(), e);
+            forumLogger.error("创建论坛失败，用户ID: {}, 论坛名称: {}, 图片ID: {}, 错误信息: {}", userID, name, imageId, e.getMessage(), e);
             return null;
         }
     }

@@ -14,7 +14,7 @@
                 <div class="title">
                     <div class="photopicture">
                         <el-image
-                            :src="getImageUrl(showimage2)" 
+                        :src="`http://localhost:8080/image/downloadById/`+forumimageId" 
                             :alt="`Image ${index + 1}`" 
                             class="homeImage"
                             fit="cover"
@@ -109,7 +109,7 @@ const forumId = computed(() => {
 })
 
 const showimage1=ref('BackGround.png')
-const showimage2=ref('PostImage.png')
+
 
 
 let postname=ref('飧筱刅吧')
@@ -148,7 +148,7 @@ const newPostList = computed(() => {
 let masterImage=ref('head.png')
 let masterName=ref('吴安邦是蠢猪')
 let masterId=ref(1)
-
+let forumimageId=ref(1)
 const searchAll = () => {
   router.push({
     path:'/Search',
@@ -263,6 +263,7 @@ onMounted(async ()=>{
         })
 
     if(status == 200 ){
+        forumimageId.value=data.forum.imageId
         postname.value=data.forum.name
         postNum.value=data.forum.postCount == null?0:data.forum.postCount
         followNum.value=data.forum.followCount == null?0:data.forum.followCount

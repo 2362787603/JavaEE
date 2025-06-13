@@ -48,8 +48,11 @@ public class ForumController {
             if (map.containsKey("introduction")) {
                 forum.setIntroduction((String) map.get("introduction"));
             }
+            if (map.containsKey("imageId")) {
+                forum.setImageId((Integer) map.get("imageId"));
+            }
 
-            Integer forumId = forumImpl.createForum(forum.getUserID(), forum.getName(), forum.getIntroduction());
+            Integer forumId = forumImpl.createForum(forum.getUserID(), forum.getName(), forum.getIntroduction(),forum.getImageId());
             if (forumId != null) {
                 response.put("message", "论坛创建成功");
                 response.put("success", true);
