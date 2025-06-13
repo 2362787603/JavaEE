@@ -38,7 +38,7 @@
           v-model="form.phone"
           @blur="validatePhone"
           :class="{ 'input-error': errors.phone }"
-          placeholder="暂无论坛介绍"
+          placeholder="请输入论坛介绍"
         />
         <div v-if="errors.phone" class="error-message">{{ errors.phone }}</div>
       </div>
@@ -68,8 +68,17 @@
 
 <script setup>
 import { ref, reactive, computed,defineProps,defineEmits } from 'vue'
+import axios from 'axios'
 
 const props = defineProps({
+  userId:{
+    type:String,
+    default:"1"
+  },
+  forumId:{
+    type:Number,
+    default:1
+  },
   initialUsername: {
     type: String,
     default: ''
@@ -138,18 +147,21 @@ const handleSubmit = async () => {
     isSubmitting.value = true
     submitError.value = ''
     
-    // 模拟API调用
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
     // 构建要提交的数据对象
     const updateData = {
-      username: form.username,
-      phone: form.phone
+      userID: props.userId,
+      name:form.username,
+      introduction:form.phone
     }
-    
-    if (isChangingPassword.value) {
-      updateData.password = form.password
-    }
+
+    const { data, status } = await axios.put(
+    'http://localhost:8080/forum/' + props.forumId,updateData,
+    {
+      validateStatus: () => true
+    })
+    console.log(data)
+    console.log(status)
+
     
     // 发送到父组件处理
     emit('update', updateData)

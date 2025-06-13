@@ -27,7 +27,7 @@ public class ImageDaoImpl implements ImageDao {
 
     @Override
     public String getImagePathById(Integer imageId) {
-        String sql = "SELECT image_url FROM image WHERE image_id = ?";
+        String sql = "SELECT image_url FROM image WHERE id = ?";
         return jdbc.queryForObject(sql, String.class, imageId);
     }
 

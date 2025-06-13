@@ -9,7 +9,7 @@
                     fit="cover"
                 />
                 <p v-if="commentUserId == props.masterId" class="attention">!楼主</p>
-                <a :href="href" @click="handleClick" class="toMaster">{{ masterName }}</a>
+                <a  @click="handleClick" class="toMaster">{{ masterName }}</a>
             </div>
             <div class="masterContent">
                 <contentBlock :text=mytext class="contentClass"/>
@@ -44,6 +44,10 @@ import CommentInput from './CommentInput.vue'
 import ConcretePostComment from './ConcretePostComment.vue'
 import { defineProps, onBeforeMount,watchEffect,watch} from 'vue'
 import axios from 'axios'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
 
 const props = defineProps({
   comment: {
@@ -69,7 +73,6 @@ let masterImage=ref('head.png')
 let masterName=ref('我是恐暴龙11111111111')
 let commentUserId=ref(1)
 let isUserLike=ref(false)
-let href=ref('/post/1')
 let isPostReply = ref(false)
 let nowReply = ref('回复')
 let hasReply=ref(true)
@@ -96,6 +99,14 @@ const changeNowReply = () => {
 
 }
 
+const handleClick = () => {
+    // 处理点击事件
+    router.push({
+        path:'/OthersHomePage',
+        query: {
+            userId: props.comment.userID,
+    }})
+}
 
 const getImageUrl = (imageName) => {
     try {
@@ -106,17 +117,14 @@ const getImageUrl = (imageName) => {
     }
 }
 
-const handleClick = () => {
-    // 处理点击事件
-    console.log('跳转到用户页面')
-}
 
 const handleLike = async () => {
   if(!isUserLike.value){
     likeNumber.value=likeNumber.value + 1
     
     const likeData = reactive({
-      ID: props.comment.id
+      ID: props.comment.id,
+      userID:props.userId
     });
 
     const { data, status } = await axios.post(
@@ -132,7 +140,8 @@ const handleLike = async () => {
     likeNumber.value=likeNumber.value - 1
 
     const likeData = reactive({
-      ID: props.comment.id
+      ID: props.comment.id,
+      userID:props.userId
     });
 
     const { data, status } = await axios.post(
@@ -192,6 +201,19 @@ onBeforeMount( async () => {
     })
     if(replystatus == 200){
         replyCommentList.value=replydata.replies
+    }
+
+    const likeData = {
+      userID:props.userId,
+      commentID:props.comment.id
+    }
+    const { data:likedata, status:likestatus } = await axios.post(
+    'http://localhost:8080/like/getUserLikeComment',likeData,
+    {
+      validateStatus: () => true
+    })
+    if(likestatus == 200){
+      isUserLike.value=likedata.isUserLike
     }
 
 })

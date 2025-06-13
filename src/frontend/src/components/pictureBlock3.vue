@@ -2,7 +2,7 @@
   <div class="picture-container">
     <div v-for="(image, index) in displayImages" :key="index" class="image-wrapper">
       <el-image
-      :src="getImageUrl(image)" 
+      :src="image" 
       :alt="`Image ${index + 1}`" 
       class="scaled-image"
       fit="cover"
@@ -12,32 +12,91 @@
 </template>
 
 <script setup>
-import { computed,defineProps} from 'vue';
-
+import { computed, defineProps, ref, watch, onBeforeMount } from 'vue';
+import axios from 'axios';
 // Define props
 const props = defineProps({
+  postId:{
+    type:Number,
+    default:() => 1
+  },
   images: {
     type: Array,
     default: () => []
   }
 });
 
-// Limit to maximum 3 images
+let fileList=ref([])
+
 const displayImages = computed(() => {
-  console.log(props.images.slice(0,3));
-  return props.images.slice(0, 3);
+  console.log('Backend images:', fileList.value.slice(0,3));
+  return fileList.value.slice(0,3);
 });
 
-const getImageUrl = (imageName) => {
-  try {
-    // For Vite
-    //return new URL(`../assets/${imageName}`, import.meta.url).href;   
-    // Alternatively, if using webpack
-    return require(`../assets/${imageName}`);
-  } catch (error) {
-    console.error('Error loading image:', error);
-    return ''; // Return empty string or a placeholder image URL
-  }
+const waitForPost = () => {
+  return new Promise((resolve) => {
+    if (props.postId && props.postId !== -1) {
+      resolve(props.postId);
+      return;
+    }
+    
+    const unwatch = watch(
+      () => props.postId,
+      (newPost) => {
+        if (newPost && newPost !== -1) {
+          unwatch();
+          resolve(newPost);
+        }
+      }
+    );
+  });
+}
+
+onBeforeMount(async () => {
+    await waitForPost();
+    fileList.value = await getPostImage(props.postId)
+});
+
+const getPostImage = async () => {
+  
+    let imageIdList = ref([]);
+    let fileList=ref([])
+    
+    // 获取帖子对应的图片映射
+    const { data: replydata, status: replystatus } = await axios.get(
+      `http://localhost:8080/postImageMapping/getByPostId/${props.postId}`, 
+      {
+        validateStatus: () => true
+      }
+    );
+    
+    if (replystatus === 200) {
+      imageIdList.value = replydata.mappings || [];
+      console.log('Image mappings:', imageIdList.value);
+    }
+    else console.log("get Image Fail!!")
+
+    // 获取每个图片的实际数据
+    for (const imagerow of imageIdList.value) {
+      try {
+        const { data: imageBlob, status: imagestatus } = await axios.get(
+          `http://localhost:8080/image/downloadById/${imagerow.imageId}`,
+          {
+            responseType: 'blob', // 重要：设置响应类型为 blob
+            validateStatus: () => true
+          }
+        );
+        
+        if (imagestatus === 200 && imageBlob) {
+          // 创建 Object URL 用于显示图片
+          const imageUrl = URL.createObjectURL(imageBlob);
+          fileList.value.push(imageUrl);
+        }
+      } catch (error) {
+        console.error(`Error loading image ${imagerow.imageId}:`, error);
+      }
+    }
+    return fileList.value
 }
 </script>
 

@@ -1,7 +1,9 @@
 package com.example.demo.Controller;
 
 import com.example.demo.DAO.CommentDao;
+import com.example.demo.DAO.LikeDao;
 import com.example.demo.Entity.Comment;
+import com.example.demo.Entity.Like;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +25,8 @@ public class CommentController {
     @Autowired
     private CommentDao commentDao;
 
+    @Autowired
+    private LikeDao likeDao;
     /**
      * 创建新评论
      */
@@ -100,10 +104,12 @@ public class CommentController {
         Map<String, Object> resp = new HashMap<>();
         try {
             Integer commentID = (Integer) map.get("ID");
+            String userID = (String) map.get("userID");
             int rows = commentDao.likeComment(commentID);
             if (rows > 0) {
                 resp.put("message", "点赞成功");
                 resp.put("success", true);
+                likeDao.createNewLike(new Like(userID,0,commentID));
                 return new ResponseEntity<>(resp, HttpStatus.OK);
             } else {
                 resp.put("message", "点赞失败");
@@ -126,10 +132,12 @@ public class CommentController {
         Map<String, Object> resp = new HashMap<>();
         try {
             Integer commentID = (Integer) map.get("ID");
+            String userID = (String) map.get("userID");
             int rows = commentDao.cancelLikeComment(commentID);
             if (rows > 0) {
                 resp.put("message", "点赞成功");
                 resp.put("success", true);
+                likeDao.deleteUserLike(new Like(userID,0,commentID));
                 return new ResponseEntity<>(resp, HttpStatus.OK);
             } else {
                 resp.put("message", "点赞失败");

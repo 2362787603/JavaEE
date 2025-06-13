@@ -23,20 +23,18 @@ public class PostImageMappingController {
     private PostImageMappingDao postImageMappingDao;
 
     @PostMapping("/add")
-    public ResponseEntity<Map<String, Object>> addMapping(@RequestBody List<Map<String, Object>> mappings) {
+    public ResponseEntity<Map<String, Object>> addMapping(@RequestBody Map<String, Object> mappings) {
         Map<String, Object> response = new HashMap<>();
         int successCount = 0;
         try {
-            for (Map<String, Object> map : mappings) {
-                Integer postId = (Integer) map.get("postId");
-                Integer imageId = (Integer) map.get("imageId");
+                Integer postId = (Integer) mappings.get("postId");
+                Integer imageId = (Integer) mappings.get("imageId");
                 if (postId != null && imageId != null) {
                     int result = postImageMappingDao.addMapping(postId, imageId);
                     if (result > 0) {
                         successCount++;
                     }
                 }
-            }
             if (successCount > 0) {
                 response.put("message", "成功添加 " + successCount + " 条映射关系");
                 response.put("success", true);

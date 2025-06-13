@@ -53,8 +53,8 @@
         <p class="guessp">猜你喜欢</p>
         <div class="bottonclass">
             <el-button class="guessbotton2" @click="createForum">创建论坛</el-button>
-            <el-button class="guessbotton">我的点赞</el-button>
-            <el-button class="guessbotton">我的评论</el-button>
+            <el-button class="guessbotton" @click="gotoHomePage">我的点赞</el-button>
+            <el-button class="guessbotton" @click="gotoHomePage">我的评论</el-button>
         </div>
     </div>
 </template>
@@ -245,7 +245,7 @@ onMounted(async ()=>{
 }*/
 
 .userPhoto {
-    width: 100px;
+    width: 30px;
 }
 
 .personHome {
@@ -262,7 +262,7 @@ onMounted(async ()=>{
   white-space: nowrap; /* 防止文本换行 */
   overflow: hidden; /* 隐藏超出部分 */
   text-overflow: ellipsis; /* 使用省略号表示被截断的文本 */
-  max-width: 55%; /* 确保文本不会超出父容器 */
+  max-width: 90%; /* 确保文本不会超出父容器 */
 }
 
 .profile-button {

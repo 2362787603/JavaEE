@@ -20,9 +20,7 @@
                         <p>{{ username }}</p>
                     </div>       
                 </div>
-                <router-link to="/Test/Test">
-                    <el-button class="personHome">个人主页</el-button>
-                </router-link>
+                <el-button class="personHome" @click="gotoHomePage">个人主页</el-button>
             </div>
         </div>
 
@@ -55,8 +53,8 @@
         <p class="guessp">猜你喜欢</p>
         <div class="bottonclass">
             <el-button class="guessbotton2" @click="createForum">创建论坛</el-button>
-            <el-button class="guessbotton">我的点赞</el-button>
-            <el-button class="guessbotton">我的评论</el-button>
+            <el-button class="guessbotton" @click="gotoHomePage">我的点赞</el-button>
+            <el-button class="guessbotton" @click="gotoHomePage">我的评论</el-button>
         </div>
     </div>
 </template>
@@ -94,6 +92,14 @@ const props = defineProps({
     default: ()=> ['飧筱刅飧筱刅飧筱刅吧','威吧','终锅衽剾吧','夯箜苜🗡吧','康鸭琲虢吧','低于校花吧','闽柯吧','婼☞吧','勇除铊飞吧']
   }
 });
+
+const gotoHomePage = () =>{
+  router.push({
+    path:'/HomePage',
+    query: {
+      userId: props.getUserId,
+  }})
+}
 
 // Limit to maximum 3 images
 const displayName = computed(() => {

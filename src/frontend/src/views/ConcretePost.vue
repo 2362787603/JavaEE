@@ -29,6 +29,7 @@
                 <el-button class="searchpartbutton" :class="{'force-hover': isNowHot }" @click="ChangeNowMod()">所有内容</el-button>
                 <el-button class="searchpartbutton" :class="{'force-hover': isNowOnly }" @click="ChangeNowMod()">只看吧主</el-button>
                 <el-button class="searchpartbutton" :class="{'force-hover': isNowNew }" @click="isNowNew = !isNowNew">时间倒序</el-button>
+                <el-button class="searchpartbutton"  @click="gotoMainPage">返回主页</el-button>
             </div>
             <div class="contentPart">
                 <innerPost class="myInnerPost" :post="post" :userId="userId" :forumId="forumId" :isNowNew="isNowNew" :is-master-only="isNowOnly"/>
@@ -147,6 +148,14 @@ const searchAll = () => {
       userId: userId.value,
       txt: searchtxt.value
   }})
+}
+
+const gotoMainPage = () => {
+    router.push({
+        path:'/MainPage',
+        query: {
+            loginData: userId.value,
+    }})
 }
 
 
@@ -318,7 +327,7 @@ onUnmounted(() => {
     height: 30px;
     width: 200px;
     margin-top: 37px;
-    margin-left: 200px;
+    margin-left: 100px;
     border-radius: 0;
 }
 

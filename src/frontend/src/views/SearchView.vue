@@ -6,6 +6,7 @@
                 <div class="choosePart">
                     <el-button class="hotButton" :class="{'force-hover': isNowHot }" @click="ChangeNowMod()">搜索帖子</el-button>
                     <el-button class="hotButton" :class="{'force-hover': isNowNew }" @click="ChangeNowMod()">搜索论坛</el-button>
+                    <el-button class="hotButton" @click="gotoMainPage">返回主页</el-button>
                 </div>
             </div>
             <div class="contentPart">
@@ -33,10 +34,11 @@ import MyPostHot from '@/components/MyPostHot.vue';
 import HomePost from '@/components/HomePost.vue';
 import MySearchFollow from '@/components/MySearchFollow.vue';
 import {ref,computed,reactive, onBeforeMount} from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute,useRouter } from 'vue-router'
 import axios from 'axios'
 
 const route = useRoute()
+const router = useRouter()
 let isNowHot=ref(true)
 let isNowNew=ref(false)
 let mySearchForum=ref(null)
@@ -79,6 +81,14 @@ const handleForumSearch = async () => {
   }
 }
 */
+
+const gotoMainPage = () => {
+    router.push({
+        path:'/MainPage',
+        query: {
+            loginData: MyuserId.value,
+    }})
+}
 
 const ChangeNowMod = () => {
     if(isNowHot.value == true){

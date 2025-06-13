@@ -1,7 +1,7 @@
 <template>
     <div class="wholeComponent"> 
         <div class="commentTitle">
-            <a :href="href" :to="postpage" @click="handleClick">🗨️ {{ postTitle }} </a>
+            <a  @click="handleClick">🗨️ {{ postTitle }} </a>
             <h3>{{ forumName }}</h3>
             <p>{{ time }}</p>
             <div class="like">
@@ -18,7 +18,7 @@
           <div class="content">
             <div v-if="isReply === true" class="ReplyShow">
                 <p>回复</p>
-                <a :href="href" :to="postpage" @click="handleClick">{{ props.ReplyName }} </a>
+                <a  @click="handleClick"> 查看详情 </a>
             </div>
             <contentBlock :text="longText"/>
           </div>
@@ -27,11 +27,22 @@
 </template>
 
 <script setup>
-
-import { defineProps,ref,computed} from 'vue';
+import { defineProps,ref,watch,onBeforeMount,computed} from 'vue';
 import contentBlock from './contentBlock.vue';
 import pictureBlock2 from './pictureBlock2.vue';
+import axios from 'axios'
+import {useRouter } from 'vue-router'
+
+const router = useRouter()
 const props = defineProps({
+  userId:{
+    type:String,
+    default:() =>"114514"
+  },
+  comment:{
+    type:Object,
+    default:null
+  },
   getPostTitle: {
     type: String,
     default: () => "你有没有发现,这是一个测试的标题啊"
@@ -50,7 +61,7 @@ const props = defineProps({
   },
   hasPicture: {
     type:Boolean,
-    default: ()=> true
+    default: ()=> false
   },
   pictureRoute: {
     type:Array,
@@ -73,6 +84,14 @@ const props = defineProps({
 
 let isUserLike=ref(true)
 let likeNumber=ref(props.getMyLike)
+let comment=ref(null)
+let postID=ref('')
+let postTitle = ref(props.getPostTitle)
+let forumName = ref(props.getForumName)
+let time = ref(props.getCommentTime)
+let myLikeNum = ref(props.getMyLike)
+let longText=ref(`😄😄😄😄😄😄😄😄😄物语了，这是一个很长的段落文本，可能会超过三行。Vue (发音为 /vjuː/，类似 view) 是一个用于构建用户界面的 JavaScript 框架。它基于标准 HTML、CSS 和 JavaScript 构建，并提供了一个声明式的、组件化的编程模型，帮助你高效地开发用户界面。无论是简单还是复杂的界面，Vue 都可以胜任。Vue 的两个核心功能：声明式渲染和响应性系统。Vue 通过扩展标准 HTML 模板语法来实现声明式渲染，允许我们根据 JavaScript 状态来描述 HTML 应该是什么样子的。当状态改变时，HTML 会自动更新。`);
+let forumId=ref(1)
 
 const handleLike = () => {
   if(!isUserLike.value){
@@ -85,16 +104,68 @@ const handleLike = () => {
   }
 }
 
+const handleClick = () =>{
+  router.push({
+        path:'/InnerPost',
+        query: {
+            userId: props.userId,
+            forumId: forumId.value,
+            postId: props.comment.postID
+    }})
+}
+
 const getUserLike = computed(() =>{
   return isUserLike.value?'like-icon':"not-like-icon"
 })
 
-let postTitle = ref(props.getPostTitle)
-let forumName = ref(props.getForumName)
-let time = ref(props.getCommentTime)
-let longText=ref(`😄😄😄😄😄😄😄😄😄物语了，这是一个很长的段落文本，可能会超过三行。Vue (发音为 /vjuː/，类似 view) 是一个用于构建用户界面的 JavaScript 框架。它基于标准 HTML、CSS 和 JavaScript 构建，并提供了一个声明式的、组件化的编程模型，帮助你高效地开发用户界面。无论是简单还是复杂的界面，Vue 都可以胜任。Vue 的两个核心功能：声明式渲染和响应性系统。Vue 通过扩展标准 HTML 模板语法来实现声明式渲染，允许我们根据 JavaScript 状态来描述 HTML 应该是什么样子的。当状态改变时，HTML 会自动更新。`);
+const waitForPost = () => {
+  return new Promise((resolve) => {
+    if (props.userId && props.userId !== "0") {
+      resolve(props.userId)
+      return
+    }
+    
+    const unwatch = watch(
+      () => props.userId,
+      (newPost) => {
+        if (newPost && newPost !== "0") {
+          unwatch()
+          resolve(newPost)
+        }
+      }
+    )
+  })
+}
 
-const href=ref('/Test/Test')
+onBeforeMount( async () => {
+
+    await waitForPost()
+    comment.value=props.comment
+    time.value=comment.value.createTime.split('T')[0]
+    longText.value=comment.value.commentContent
+
+    const { data:createdata, status:createstatus } = await axios.get(
+    'http://localhost:8080/post/' + comment.value.postID,
+    {
+      validateStatus: () => true
+    })
+    if(createstatus == 200){
+        postID.value=props.comment.postID
+        postTitle.value=createdata.post.title
+        myLikeNum.value=props.comment.likeNumber
+
+        const { data:forumdata, status:forumstatus } = await axios.get(
+        'http://localhost:8080/forum/search/' + createdata.post.forumID,
+        {
+          validateStatus: () => true
+        })
+        if(forumstatus == 200){
+          forumName.value=forumdata.forum.name
+        }
+      }
+    }
+
+)
 
 </script>
 

@@ -1,18 +1,18 @@
 <template>
     <div class="wholeComponent">
       <div class="titleLine">
-          <div v-for="(showimage, index) in props.getimages" :key="index" class="image-row">
+          <div v-for="(forum, index) in allPost" :key="index" class="image-row">
               <el-image
-                  :src="getImageUrl(showimage)" 
+                  :src="getImageUrl(image)" 
                   :alt="`Image ${index + 1}`" 
                   class="scaled-image"
                   fit="cover"
               />
               <div class="content">
-                  <h3>{{ props.getnames[index] }}</h3>
+                  <h3>{{ forum.name }}</h3>
                   <div class="information">
-                      <p class="postnum">📝 发帖总数：&nbsp; {{ props.getpostnum[index] }}</p>
-                      <p class="follownum">➕ 关注总数：&nbsp; {{ props.getfollownum[index] }} </p>
+                      <p class="postnum">📝 发帖总数：&nbsp; {{ forum.postCount  }}</p>
+                      <p class="follownum">➕ 关注总数：&nbsp; {{ forum.followCount }} </p>
                   </div>
               </div>
               <h3 v-if="props.getpostnum[index] >= 10" class="hot">当前热门</h3>
@@ -23,9 +23,14 @@
 
 <script setup>
 
-import { defineProps} from 'vue';
+import { defineProps,onBeforeMount,ref,watch} from 'vue';
+import axios from 'axios'
 // Define props
 const props = defineProps({
+  userId:{
+    type:String,
+    default:"0"
+  },
   getimages: {
     type: Array,
     default: () => ['BackGround.png','LoginBackGroud.png','LoginTestFinal.png','BackGround.png','LoginBackGroud.png','LoginTestFinal.png','BackGround.png','LoginBackGroud.png','LoginTestFinal.png','BackGround.png','LoginBackGroud.png','LoginTestFinal.png']
@@ -44,6 +49,23 @@ const props = defineProps({
   }
 });
 
+let allPost=ref([])
+const image='PostImage.png'
+
+/*
+const getnames=computed(()=>{
+  return allPost?.map(forum => forum.name) || [];
+})
+
+const getpostnum=computed(()=>{
+  return allPost?.map(forum => forum.postCount) || [];
+})
+
+const getfollownum=computed(()=>{
+  return allPost?.map(forum => forum.followCount) || [];
+})*/
+
+
 const getImageUrl = (imageName) => {
   try {
     return require(`../assets/${imageName}`);
@@ -52,6 +74,42 @@ const getImageUrl = (imageName) => {
     return ''; // Return empty string or a placeholder image URL
   }
 }
+
+const waitForPost = () => {
+  return new Promise((resolve) => {
+    if (props.userId && props.userId !== "0") {
+      resolve(props.userId)
+      return
+    }
+    
+    const unwatch = watch(
+      () => props.userId,
+      (newPost) => {
+        if (newPost && newPost !== "0") {
+          unwatch()
+          resolve(newPost)
+        }
+      }
+    )
+  })
+}
+
+onBeforeMount( async () => {
+
+    await waitForPost()
+    const { data:createdata, status:createstatus } = await axios.get(
+      'http://localhost:8080/forum/getForumByUserId',
+      {
+        params:{
+          userId:props.userId
+        },
+        validateStatus: () => true
+      })
+      if(createstatus == 200){
+        allPost.value=createdata.forumList
+      }
+
+})
 
 </script>
 

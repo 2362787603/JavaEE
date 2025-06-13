@@ -40,12 +40,14 @@ public class PostDaoImpl implements PostDao {
             INSERT INTO post(user_id, forum_id, title, content, like_number, create_time)
             VALUES (?, ?, ?, ?, 0, NOW())
         """;
-        return jdbc.update(sql,
+        jdbc.update(sql,
                 post.getUserID(),
                 post.getForumID(),
                 post.getTitle(),
                 post.getContent()
         );
+        sql = "select max(id) from post";
+        return jdbc.queryForObject(sql, Integer.class);
     }
 
     @Override

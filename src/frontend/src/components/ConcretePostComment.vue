@@ -7,7 +7,7 @@
     />
     <div class="replyRightPart">
         <p class="comment">
-                <router-link :to="`/OthersHomePage`" class="MyreplyName">{{ replyName }}</router-link>:{{ replyComment }}
+                <span  class="MyreplyName" @click="handleClick">{{ replyName }}</span>:{{ replyComment }}
         </p>
         <div class="CommentbuttonLine">
             <div class="likePartComment">
@@ -30,7 +30,8 @@ import {ref,computed,reactive} from 'vue'
 import CommentInput from './CommentInput.vue'
 import { defineProps, onBeforeMount,watchEffect,watch} from 'vue'
 import axios from 'axios'
-
+import { useRouter } from 'vue-router'
+const router = useRouter()
 const props = defineProps({
   comment: {
     type:Object,
@@ -84,6 +85,16 @@ const changeCommentReply = () => {
     }
 }
 
+
+const handleClick = () => {
+    // 处理点击事件
+    router.push({
+        path:'/OthersHomePage',
+        query: {
+            userId: props.comment.userID,
+    }})
+}
+
 const getImageUrl = (imageName) => {
     try {
         return require(`../assets/${imageName}`);
@@ -99,7 +110,8 @@ const handleLike = async () => {
     nowLikeNumber.value=nowLikeNumber.value + 1
     
     const likeData = reactive({
-      ID: props.comment.id
+      ID: props.comment.id,
+      userID: props.userId
     });
 
     const { data, status } = await axios.post(
@@ -115,7 +127,8 @@ const handleLike = async () => {
     nowLikeNumber.value=nowLikeNumber.value - 1
 
     const likeData = reactive({
-      ID: props.comment.id
+      ID: props.comment.id,
+      userID: props.userId
     });
 
     const { data, status } = await axios.post(
@@ -161,6 +174,19 @@ onBeforeMount( async () => {
     })
     if(masterstatus == 200){
         replyName.value=masterdata.user.username
+    }
+
+    const likeData = {
+      userID:props.userId,
+      commentID:props.comment.id
+    }
+    const { data:likedata, status:likestatus } = await axios.post(
+    'http://localhost:8080/like/getUserLikeComment',likeData,
+    {
+      validateStatus: () => true
+    })
+    if(likestatus == 200){
+      isUserLike.value=likedata.isUserLike
     }
 
 })

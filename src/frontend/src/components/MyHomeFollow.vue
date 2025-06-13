@@ -1,18 +1,18 @@
 <template>
     <div class="wholeComponent">
         <div class="titleLine">
-            <div v-for="(showimage, index) in props.getimages" :key="index" class="image-row">
+            <div v-for="(forum, index) in allPost" :key="index" class="image-row">
                 <el-image
-                    :src="getImageUrl(showimage)" 
+                    :src="getImageUrl(image)" 
                     :alt="`Image ${index + 1}`" 
                     class="scaled-image"
                     fit="cover"
                 />
                 <div class="content">
-                    <h3>{{ props.getnames[index] }}</h3>
+                    <h3 @click="gotoPost(index)">{{  forum.name  }}</h3>
                     <div class="information">
-                        <p class="postnum">📝 发帖总数：&nbsp; {{ props.getpostnum[index] }}</p>
-                        <p class="follownum">➕ 关注总数：&nbsp; {{ props.getfollownum[index] }} </p>
+                        <p class="postnum">📝 发帖总数：&nbsp; {{ forum.postCount }}</p>
+                        <p class="follownum">➕ 关注总数：&nbsp; {{ forum.followCount }} </p>
                     </div>
                 </div>
                 <el-button class="cancelFollow"  @click="changeFollow(index)">{{ buttonContent[index] }}</el-button>
@@ -23,10 +23,19 @@
 
 <script setup>
 
-import { defineProps,ref} from 'vue';
+import { defineProps,ref,reactive} from 'vue';
+import { onBeforeMount,watch} from 'vue';
+import axios from 'axios'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 // Define props
 const props = defineProps({
+  userId:{
+    type:String,
+    default:"0"
+  },
   getimages: {
     type: Array,
     default: () => ['BackGround.png','LoginBackGroud.png','LoginTestFinal.png','BackGround.png','LoginBackGroud.png','LoginTestFinal.png','BackGround.png','LoginBackGroud.png','LoginTestFinal.png','BackGround.png','LoginBackGroud.png','LoginTestFinal.png']
@@ -45,7 +54,9 @@ const props = defineProps({
   }
 });
 
+const image='PostImage.png'
 let buttonContent=ref([])
+let allPost=ref([])
 for(let i = 0;i < props.getnames.length;i ++ ){
     buttonContent.value.push('取消关注');
 }
@@ -59,10 +70,84 @@ const getImageUrl = (imageName) => {
   }
 }
 
-const changeFollow = (index) =>{
-    if(buttonContent.value[index] == '取消关注') buttonContent.value[index] = '关注';
-    else if(buttonContent.value[index] == '关注') buttonContent.value[index] = '取消关注';
+const changeFollow = async (index) =>{
+    if(buttonContent.value[index] == '取消关注'){
+        buttonContent.value[index] = '关注';
+        let deleteForm = reactive({
+            userId: props.userId,
+            forumId: Number(allPost.value[index].id)
+        })
+        const{data:userdata,status:userstatus} = await axios.delete(
+            'http://localhost:8080/forum/follow', 
+            {
+                data:deleteForm,
+                validateStatus: () => true
+            })
+        if(userstatus != 200) console.log(userdata)
+        allPost.value[index].followCount --;
+    }
+    else if(buttonContent.value[index] == '关注'){
+      buttonContent.value[index] = '取消关注';
+      let deleteForm = reactive({
+            userId: props.userId,
+            forumId: Number(allPost.value[index].id)
+        })
+        const{data:userdata,status:userstatus} = await axios.post(
+            'http://localhost:8080/forum/follow', deleteForm,
+            {
+            validateStatus: () => true
+            })
+        if(userstatus != 200) console.log(userdata)
+
+        allPost.value[index].followCount ++;
+    }
 }
+
+const gotoPost = (index) => {
+    router.push({
+        path:'/Post',
+        query: {
+            userId: props.userId,
+            forumId: allPost.value[index].id
+    }})
+}
+
+const waitForPost = () => {
+  return new Promise((resolve) => {
+    if (props.userId && props.userId !== "0") {
+      resolve(props.userId)
+      return
+    }
+    
+    const unwatch = watch(
+      () => props.userId,
+      (newPost) => {
+        if (newPost && newPost !== "0") {
+          unwatch()
+          resolve(newPost)
+        }
+      }
+    )
+  })
+}
+
+onBeforeMount( async () => {
+
+    await waitForPost()
+    const { data:createdata, status:createstatus } = await axios.get(
+      'http://localhost:8080/forum/getAllUserFollow',
+      {
+        params:{
+          userId:props.userId
+        },
+        validateStatus: () => true
+      })
+      if(createstatus == 200){
+        allPost.value=createdata.followForums
+        console.log(createdata.followForums)
+      }
+
+})
 
 </script>
 

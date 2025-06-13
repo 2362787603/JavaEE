@@ -1,6 +1,8 @@
 package com.example.demo.Controller;
 
+import com.example.demo.DAO.LikeDao;
 import com.example.demo.DAO.PostDao;
+import com.example.demo.Entity.Like;
 import com.example.demo.Entity.Post;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +25,8 @@ public class PostController {
     @Autowired
     private PostDao postDao;
 
+    @Autowired
+    private LikeDao likeDao;
 
     @GetMapping("/test-db")
     public Map<String, Object> testDb() {
@@ -53,10 +57,12 @@ public class PostController {
             if (rows > 0) {
                 resp.put("message", "创建成功");
                 resp.put("success", true);
+                resp.put("postId",rows);
                 return new ResponseEntity<>(resp, HttpStatus.OK);
             } else {
                 resp.put("message", "创建失败");
                 resp.put("success", false);
+                resp.put("postId",rows);
                 return new ResponseEntity<>(resp, HttpStatus.INTERNAL_SERVER_ERROR);
             }
         } catch (Exception e) {
@@ -138,10 +144,12 @@ public class PostController {
         Map<String, Object> resp = new HashMap<>();
         try {
             Integer postID = (Integer) map.get("postID");
+            String userID = (String) map.get("userID");
             int rows = postDao.likePost(postID);
             if (rows > 0) {
                 resp.put("message", "点赞成功");
                 resp.put("success", true);
+                likeDao.createNewLike(new Like(userID,postID,0));
                 return new ResponseEntity<>(resp, HttpStatus.OK);
             } else {
                 resp.put("message", "点赞失败");
@@ -164,10 +172,12 @@ public class PostController {
         Map<String, Object> resp = new HashMap<>();
         try {
             Integer postID = (Integer) map.get("postID");
+            String userID = (String) map.get("userID");
             int rows = postDao.cancleLikePost(postID);
             if (rows > 0) {
                 resp.put("message", "取消点赞成功");
                 resp.put("success", true);
+                likeDao.deleteUserLike(new Like(userID,postID,0));
                 return new ResponseEntity<>(resp, HttpStatus.OK);
             } else {
                 resp.put("message", "取消点赞失败");

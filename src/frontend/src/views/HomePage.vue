@@ -10,7 +10,7 @@
     </Teleport>
     <div class="wholeHomePage">
         <div class="home_scrollable-content">
-            <HotSearch/>
+            <HotSearch :userId="userId"/>
             <!-- 使用 Teleport 将弹窗内容传送到 body 元素下 -->
             <div class="HomePageTitle">
                 <div class="leftpart"></div>
@@ -28,7 +28,7 @@
                             <el-button class="changeMessage" @click="showModal = true">编辑资料</el-button>
                             <p>{{ username }}</p>
                             <div class="information">
-                                <p>今天是您在论坛的:&nbsp;{{ usertime }}天&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 发帖:  {{ userposttime }}</p>
+                                <p>今天是您在论坛的第&nbsp;{{ usertime }}&nbsp;天&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 发帖:  {{ userposttime }}</p>
                             </div>
                         </div>
                     </div>
@@ -42,14 +42,14 @@
                             <MyHomePost :userId="userId"/>
                         </div>
                         <div v-if="nowPage === 'MyHomeFollow'">
-                            <MyHomeFollow/>
+                            <MyHomeFollow :userId="userId"/>
                         </div>
                         <div v-if="nowPage === 'MyHomeLike'">
-                            <MyHomeLike />
+                            <MyHomeLike :userId="userId"/>
                         </div>
                         <div v-if="nowPage === 'MyHomeComment'">
-                            <div v-for="i in range(0,10)" :key="i" class="myLike">
-                                <myComment />
+                            <div v-for="i in range(0,commentList.length)" :key="i" class="myLike">
+                                <myComment :userId="userId" :comment="commentList[i]"/>
                             </div>
                         </div>
                         <div v-if="nowPage === 'MyInformation'">
@@ -87,7 +87,7 @@
     })
 
     let username=ref('论坛用户_UNKLJSDKUF');
-    let usertime=ref('468');
+    let usertime=ref('1');
     let userposttime=ref('5')
     const showimage=ref('head.png')
     const buttonList=ref(['📝我的论坛','💖我的点赞','➕关注的贴','🗨️我的评论','🔔我的通知']);
@@ -95,6 +95,7 @@
     let showModal=ref(false);
     let userPhone=ref('15684926543');
     let nowPage=ref('MyHomePost');
+    let commentList=ref([])
 
     let AlluserPost=ref([])
 
@@ -157,6 +158,16 @@
         userposttime.value=AlluserPost.value.length
       }
 
+      const { data:commentdata, status:commentstatus } = await axios.get(
+      'http://localhost:8080/comment/user/' + userId.value,
+      {
+        validateStatus: () => true
+      })
+      if(commentstatus == 200){
+        console.log("99999999999999999999999999999999")
+        console.log(commentdata)
+        commentList.value=commentdata.comments
+      }
     })
 </script>
 

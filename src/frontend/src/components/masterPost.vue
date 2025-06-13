@@ -20,7 +20,7 @@
             </div>
             <div class="masterContent">
                 <contentBlock :text=mytext class="contentClass"/>
-                <pictureBlock4 v-if="haspicture" class="pictureClass"/>
+                <pictureBlock4 v-if="haspicture && props.post" class="pictureClass" :postId="props.post.id" :userId="props.userId"/>
                 <div class="buttonLine">
                     <div class="likePart">
                         <span :class="getUserLike" @click="handleLike">
@@ -34,7 +34,7 @@
             </div>
         </div>
         <div v-if="isPostReply === true">
-            <CommentInput class="myReplyComment" :isReplyPost="replyPost" :postId="props.post.id" :userId="props.userId" :forumId="props.post.forumId"/>
+            <CommentInput class="myReplyComment" v-if="props.post" :isReplyPost="replyPost" :postId="props.post.id" :userId="props.userId" :forumId="props.post.forumId"/>
         </div>
     </div>
 </template> 
@@ -48,6 +48,9 @@ import CommentInput from './CommentInput.vue'
 
 import { defineProps, onBeforeMount,watchEffect,watch} from 'vue'
 import axios from 'axios'
+import {useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const props = defineProps({
   post: {
@@ -103,9 +106,14 @@ const getImageUrl = (imageName) => {
     }
 }
 
+
 const handleClick = () => {
     // 处理点击事件
-    console.log('跳转到用户页面')
+    router.push({
+        path:'/OthersHomePage',
+        query: {
+            userId: props.post.userID,
+    }})
 }
 
 const handleLike = async () => {
@@ -113,7 +121,8 @@ const handleLike = async () => {
     likeNumber.value=likeNumber.value + 1
     
     const likeData = reactive({
-      postID: props.post.id
+      postID: props.post.id,
+      userID:props.userId
     });
 
     const { data, status } = await axios.post(
@@ -129,7 +138,8 @@ const handleLike = async () => {
     likeNumber.value=likeNumber.value - 1
 
     const likeData = reactive({
-      postID: props.post.id
+      postID: props.post.id,
+      userID: props.userId
     });
 
     const { data, status } = await axios.post(
@@ -176,6 +186,22 @@ onBeforeMount( async () => {
     })
     if(masterstatus == 200){
         masterName.value=masterdata.user.username
+    }
+
+    const likeData = {
+      userID:props.userId,
+      postID:props.post.id
+    }
+    const { data:likedata, status:likestatus } = await axios.post(
+    'http://localhost:8080/like/getUserLikePost',likeData,
+    {
+      validateStatus: () => true
+    })
+    if(likestatus == 200){
+      isUserLike.value=likedata.isUserLike
+      console.log("55555555555555555555555")
+      console.log(likeData)
+      console.log(likedata)
     }
 
 })

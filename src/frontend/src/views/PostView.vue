@@ -40,6 +40,7 @@
                     <el-button class="hotButton" :class="{'force-hover': isNowHot }" @click="ChangeNowMod()">当前热门</el-button>
                     <el-button class="hotButton" :class="{'force-hover': isNowNew }" @click="ChangeNowMod()">最新内容</el-button>
                     <el-button class="hotButton"  @click="gotoPost()">我要发贴</el-button>
+                    <el-button class="hotButton"  @click="gotoMainPage">返回主页</el-button>
                     <el-input 
                         type="text" 
                         class="search-input" 
@@ -76,7 +77,7 @@
                             <div class="masterInformation">
                                 <p>吧主</p>
                                 <p class="masterName">{{ masterName}}</p>
-                                <el-button class="masterButton">查看ta的主页</el-button>
+                                <el-button class="masterButton" @click="gotoOtherOage">查看ta的主页</el-button>
                             </div>
                         </div>
                     </div>
@@ -146,6 +147,7 @@ const newPostList = computed(() => {
 
 let masterImage=ref('head.png')
 let masterName=ref('吴安邦是蠢猪')
+let masterId=ref(1)
 
 const searchAll = () => {
   router.push({
@@ -180,6 +182,22 @@ const gotoPost = () => {
         query: {
             userId: userId.value,
             forumId: forumId.value
+    }})
+}
+
+const gotoOtherOage = () => {
+    router.push({
+        path:'/OthersHomePage',
+        query: {
+            userId: masterId.value,
+    }})
+}
+ 
+const gotoMainPage = () => {
+    router.push({
+        path:'/MainPage',
+        query: {
+            loginData: userId.value,
     }})
 }
 
@@ -249,6 +267,7 @@ onMounted(async ()=>{
         postNum.value=data.forum.postCount == null?0:data.forum.postCount
         followNum.value=data.forum.followCount == null?0:data.forum.followCount
         introduction.value=data.forum.introduction
+        masterId.value=data.forum.userID
         let createUserId = ref(data.forum.userID)
 
         const{data:userdata,status:userstatus} = await axios.get(

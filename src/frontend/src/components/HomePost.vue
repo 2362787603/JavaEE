@@ -25,7 +25,7 @@
             <contentBlock :text="longText"/>
           </div>
           <div class="picture">
-            <pictureBlock1 :images="image"/>
+            <pictureBlock1 v-if="props.post" :postId="props.post.id"/>
           </div>
         </div>
         <div class="bottonLine">
@@ -34,7 +34,7 @@
               <circle cx="12" cy="8" r="5" fill="#CCCCCC"/>
               <path d="M3 22C3 17.58 6.58 14 11 14H13C17.42 14 21 17.58 21 22" stroke="#CCCCCC" stroke-width="2" stroke-linecap="round"/>
             </svg>
-            <a :href="href" :to="postpage" @click="handleClick" class="mastername">{{ mastername }}</a>
+            <a  @click="handleMaster" class="mastername">{{ mastername }}</a>
           </div>
           <div class="comment">
             <span class="comment-icon">
@@ -53,7 +53,7 @@
 </template>
 
 <script name='HomePost' setup>
-import { ref,computed,defineProps,watchEffect,watch,onBeforeMount} from 'vue'
+import { ref,computed,defineProps,watchEffect,watch,onBeforeMount,reactive} from 'vue'
 import contentBlock from './contentBlock.vue'
 import pictureBlock1 from './pictureBlock1.vue'
 import '@fortawesome/fontawesome-free/css/all.min.css'
@@ -79,13 +79,11 @@ const props = defineProps({
 
 const imagePath=ref('PostImage.png')
 const postfollow=ref(119)
-const href=ref('/Test/Test')
-const image=['BackGround.png','LoginBackGroud.png','LoginTestFinal.png']
 let mastername=ref('我不是隼鸮牕')
 let commentNumber=ref(11)
-
+let masterid=ref(1)
 let postFromName=ref('飧筱刅吧')
-let likeNumber = ref(0)
+let likeNumber = ref(props.post != null?props.post.likeNumber:0)
 let posttime = ref('')
 let longText = ref('')
 let postTitle = ref('')
@@ -103,13 +101,38 @@ watchEffect(() => {
 
 let isUserLike=ref(props.HasUserLiked)
 
-const handleLike = () => {
+const handleLike = async () => {
   if(!isUserLike.value){
     likeNumber.value=likeNumber.value + 1
+    
+    const likeData = reactive({
+      postID: props.post.id,
+      userID:props.userId
+    });
+
+    const { data, status } = await axios.post(
+      'http://localhost:8080/post/like', likeData,
+      {
+      validateStatus: () => true
+      })
+    if(status == 200) console.log(data)
+
     isUserLike.value=true
   }
   else{
     likeNumber.value=likeNumber.value - 1
+
+    const likeData = reactive({
+      postID: props.post.id,
+      userID: props.userId
+    });
+
+    const { data, status } = await axios.post(
+      'http://localhost:8080/post/cancelLike', likeData,
+      {
+      validateStatus: () => true
+      })
+    if(status == 200) console.log(data)
     isUserLike.value=false
   }
 }
@@ -123,6 +146,13 @@ const EnterForum = () =>{
     }})
 }
 
+const handleMaster = () => {
+    router.push({
+        path:'/OthersHomePage',
+        query: {
+            userId: masterid.value,
+    }})
+}
 const EnterPost = () =>{
     router.push({
         path:'/InnerPost',
@@ -166,6 +196,7 @@ onBeforeMount( async () => {
     })
     if(masterstatus == 200){
       mastername.value=masterdata.user.username
+      masterid.value=masterdata.user.userId
     }
 
     const { data:followdata, status:followstatus } = await axios.get(
@@ -196,6 +227,21 @@ onBeforeMount( async () => {
     })
     if(forumstatus == 200){
       postFromName.value=forumdata.forum.name
+    }
+
+    const likeData = {
+      userID:props.userId,
+      postID:props.post.id
+    }
+    const { data:likedata, status:likestatus } = await axios.post(
+    'http://localhost:8080/like/getUserLikePost',likeData,
+    {
+      validateStatus: () => true
+    })
+    if(likestatus == 200){
+      isUserLike.value=likedata.isUserLike
+      console.log(likeData)
+      console.log(likedata)
     }
 })
 

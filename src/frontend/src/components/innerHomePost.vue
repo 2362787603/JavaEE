@@ -6,7 +6,7 @@
             <contentBlock :text="longText"/>
           </div>
           <div class="picture">
-            <pictureBlock3 class="myPicture" :images="image"/>
+            <pictureBlock3 v-if="props.post" class="myPicture" :images="image" :postId="props.post.id"/>
           </div>
         </div>
         <div class="bottonLine">
@@ -15,7 +15,7 @@
               <circle cx="12" cy="8" r="5" fill="#CCCCCC"/>
               <path d="M3 22C3 17.58 6.58 14 11 14H13C17.42 14 21 17.58 21 22" stroke="#CCCCCC" stroke-width="2" stroke-linecap="round"/>
             </svg>
-            <a :href="href" :to="postpage" @click="handleHomeClick">{{ username }}</a>
+            <a  @click="handleMaster">{{ username }}</a>
           </div>
           <div class="comment">
             <span class="comment-icon">
@@ -62,7 +62,6 @@ const props = defineProps({
   }
 });
 
-const href=ref('/Test/Test')
 const longText=ref(props.post != null?props.post.content:`这是一个很长的段落文本，可能会超过三行。Vue (发音为 /vjuː/，类似 view) 是一个用于构建用户界面的 JavaScript 框架。它基于标准 HTML、CSS 和 JavaScript 构建，并提供了一个声明式的、组件化的编程模型，帮助你高效地开发用户界面。无论是简单还是复杂的界面，Vue 都可以胜任。Vue 的两个核心功能：声明式渲染和响应性系统。Vue 通过扩展标准 HTML 模板语法来实现声明式渲染，允许我们根据 JavaScript 状态来描述 HTML 应该是什么样子的。当状态改变时，HTML 会自动更新。`);
 const image=['BackGround.png','LoginBackGroud.png','LoginTestFinal.png']
 const titleText=ref(props.post != null?props.post.title:"你有没有发现这是一个测试？")
@@ -72,12 +71,21 @@ let likeNumber=ref(props.post != null?props.post.likeNumber:114)
 
 let isUserLike=ref(props.HasUserLiked)
 
+const handleMaster = () => {
+    router.push({
+        path:'/OthersHomePage',
+        query: {
+            userId: props.post.userID,
+    }})
+}
+
 const handleLike = async () => {
   if(!isUserLike.value){
     likeNumber.value=likeNumber.value + 1
     
     const likeData = reactive({
-      postID: props.post.id
+      postID: props.post.id,
+      userID:props.userId
     });
 
     const { data, status } = await axios.post(
@@ -93,7 +101,8 @@ const handleLike = async () => {
     likeNumber.value=likeNumber.value - 1
 
     const likeData = reactive({
-      postID: props.post.id
+      postID: props.post.id,
+      userID:props.userId
     });
 
     const { data, status } = await axios.post(
@@ -145,6 +154,19 @@ onMounted(async ()=>{
     })
     if(followstatus == 200){
       commentNumber.value=followdata.count
+    }
+
+    const likeData = {
+      userID:props.userId,
+      postID:props.post.id
+    }
+    const { data:likedata, status:likestatus } = await axios.post(
+    'http://localhost:8080/like/getUserLikePost',likeData,
+    {
+      validateStatus: () => true
+    })
+    if(likestatus == 200){
+      isUserLike.value=likedata.isUserLike
     }
 })
 

@@ -8,8 +8,8 @@
                     <p v-if="index >= 3" class="hotindex">{{ index + 1 }}</p>
                     <el-button class="hotname">{{ name }}</el-button>
                     <div class="myhotnumber">
-                        <p v-if="index < 3" class="hot1">热度: {{ displayhots[index] }}</p>
-                        <p v-if="index >= 3" class="hot2">热度: {{ displayhots[index] }}</p>
+                        <p v-if="index < 3" class="hot1">相关话题: {{ displayhots[index] }}</p>
+                        <p v-if="index >= 3" class="hot2">相关话题: {{ displayhots[index] }}</p>
                     </div>
                 </div>
             </div>
@@ -25,11 +25,11 @@ import {defineProps,ref} from 'vue';
 const props = defineProps({
   displaynames: {
     type:Array,
-    default: ()=> ['高考','考研','读博','游戏','二齿缘','凫鳢麂','生活','美食','教育']
+    default: ()=> ['高考','考研','读博','游戏','娱乐','科技','生活','美食','教育']
   },
   displayhots: {
     type:Array,
-    default: ()=>[114,514,1919,810,114514,1919810,1,1,4]
+    default: ()=>[16,14,13,12,10,4,3,3,1]
   }
 });
 

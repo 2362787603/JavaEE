@@ -38,17 +38,17 @@
                     </div>
                     <div class="followPart">
                         <div v-if="nowPage === 'MyHomePost'">
-                            <OtherHomePost/>
+                            <OtherHomePost :userId="userId"/>
                         </div>
                         <div v-if="nowPage === 'MyHomeFollow'">
-                            <OthersHomeFollow/>
+                            <OthersHomeFollow :userId="userId"/>
                         </div>
                         <div v-if="nowPage === 'MyHomeLike'">
-                            <MyHomeLike />
+                            <MyHomeLike :userId="userId"/>
                         </div>
                         <div v-if="nowPage === 'MyHomeComment'">
-                            <div v-for="i in range(0,10)" :key="i" class="myLike">
-                                <myComment />
+                            <div v-for="i in range(0,commentList.length)" :key="i" class="myLike">
+                                <myComment :userId="userId" :comment="commentList[i]"/>
                             </div>
                         </div>
                     </div>
@@ -70,16 +70,28 @@
     import myComment from '@/components/myComment.vue';
     import OtherHomePost from '@/components/OtherHomePost.vue';
 
+    import {computed, onBeforeMount} from 'vue'
+    import { useRoute } from 'vue-router'
+    import axios from 'axios'
+
+    const route = useRoute()
+    const userId = computed(() => {
+      const raw = route.query.userId
+      if (!raw) return ''               // 没有就返回空字符串
+      return raw
+    })
+
     const username=ref('论坛用户_UNKLJSDKUF');
-    const usertime=ref('468');
-    const userposttime=ref('5')
+    const usertime=ref('1');
+    const userposttime=ref('1')
     const showimage=ref('head.png')
     const buttonList=ref(['📝ta的论坛','💖ta的点赞','➕关注的贴','🗨️ta的评论']);
     let ishoveredList=ref([true,false,false,false,false]);
     let showModal=ref(false);
     let userName=ref('论坛用户_114514');
     let userPhone=ref('15684926543');
-
+    let AlluserPost=ref([])
+    let commentList=ref([])
     let nowPage=ref('MyHomePost');
 
     const getImageUrl = (imageName) => {
@@ -103,6 +115,42 @@
     const range = (start, end) => {
         return Array.from({length: end - start}, (_, index) => start + index);
     }
+
+    onBeforeMount(async ()=>{
+
+      console.log("Before Mounted Start!!")
+      const { data:userdata, status:userstatus } = await axios.get(
+          'http://localhost:8080/user/'+userId.value, 
+          {
+              validateStatus: () => true
+          }
+      )
+      if(userstatus == 200 ){
+          username.value=userdata.user.username
+          userPhone.value=userId.value
+      }
+
+      const { data:postdata, status:poststatus } = await axios.get(
+      'http://localhost:8080/post/user/' + userId.value,
+      {
+        validateStatus: () => true
+      })
+      if(poststatus == 200){
+        AlluserPost.value=postdata.posts
+        userposttime.value=AlluserPost.value.length
+      }
+
+      const { data:commentdata, status:commentstatus } = await axios.get(
+      'http://localhost:8080/comment/user/' + userId.value,
+      {
+        validateStatus: () => true
+      })
+      if(commentstatus == 200){
+        console.log("99999999999999999999999999999999")
+        console.log(commentdata)
+        commentList.value=commentdata.comments
+      }
+    })
 </script>
 
 <style scoped>

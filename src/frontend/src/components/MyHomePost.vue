@@ -5,27 +5,28 @@
             <div class="modal-content">
                 <button class="close-btn" @click="showModal = false">×</button>
                 <!-- 这里放置你要显示的组件 -->
-                <ChangePost :initialUsername="userName" :initialPhone="userPhone" @cancel="showModal = false" @update="showModal = false"/>
+                <ChangePost :userId="props.userId" :forumId="nowForumId" :initialUsername="userName" :initialPhone="userPhone" @cancel="showModal = false" @update="updateData"/>
             </div>
           </div>
       </Teleport>
       <div class="titleLine">
-          <div v-for="(showimage, index) in props.getimages" :key="index" class="image-row">
+          <div v-for="(forum, index) in allPost" :key="index" class="image-row">
               <el-image
-                  :src="getImageUrl(showimage)" 
+                  :src="getImageUrl(image)" 
                   :alt="`Image ${index + 1}`" 
                   class="scaled-image"
                   fit="cover"
               />
               <div class="content">
-                  <h3>{{ props.getnames[index] }}</h3>
+                  <h3>{{ forum.name }}</h3>
                   <div class="information">
-                      <p class="postnum">📝 发帖总数：&nbsp; {{ props.getpostnum[index] }}</p>
-                      <p class="follownum">➕ 关注总数：&nbsp; {{ props.getfollownum[index] }} </p>
+                      <p class="postnum">📝 发帖总数：&nbsp; {{ forum.postCount }}</p>
+                      <p class="follownum">➕ 关注总数：&nbsp; {{ forum.followCount }} </p>
                   </div>
-                  <el-button class="changeMessage" @click="showModal = true">编辑信息</el-button>
+                  <el-button class="changeMessage" @click="modifyMessage(index)">编辑信息</el-button>
+                  <el-button class="gotoPage" @click="gotoPost(index)">进入论坛</el-button>
               </div>
-              <h3 v-if="props.getpostnum[index] >= 10" class="hot">当前热门</h3>
+              <h3 v-if="forum.postCount >= 10" class="hot">当前热门</h3>
           </div>
       </div>
     </div>
@@ -33,16 +34,20 @@
 
 <script setup>
 
-import { defineProps,ref} from 'vue';
+import { defineProps,onBeforeMount,ref,watch} from 'vue';
 import ChangePost from './ChangePost.vue';
+import axios from 'axios'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 let showModal=ref(false)
+let nowForumId=ref(1)
 
 // Define props
 const props = defineProps({
   userId:{
     type:String,
-    default:"1"
+    default:"0"
   },
   getimages: {
     type: Array,
@@ -62,6 +67,36 @@ const props = defineProps({
   }
 });
 
+let allPost=ref([])
+const image='PostImage.png'
+
+const modifyMessage = (index) => {
+  nowForumId.value = allPost.value[index].id
+  showModal.value = true
+}
+
+const gotoPost = (index) => {
+    router.push({
+        path:'/Post',
+        query: {
+            userId: props.userId,
+            forumId: allPost.value[index].id
+    }})
+}
+
+/*
+const getnames=computed(()=>{
+  return allPost?.map(forum => forum.name) || [];
+})
+
+const getpostnum=computed(()=>{
+  return allPost?.map(forum => forum.postCount) || [];
+})
+
+const getfollownum=computed(()=>{
+  return allPost?.map(forum => forum.followCount) || [];
+})*/
+
 
 const getImageUrl = (imageName) => {
   try {
@@ -71,6 +106,56 @@ const getImageUrl = (imageName) => {
     return ''; // Return empty string or a placeholder image URL
   }
 }
+
+const waitForPost = () => {
+  return new Promise((resolve) => {
+    if (props.userId && props.userId !== "0") {
+      resolve(props.userId)
+      return
+    }
+    
+    const unwatch = watch(
+      () => props.userId,
+      (newPost) => {
+        if (newPost && newPost !== "0") {
+          unwatch()
+          resolve(newPost)
+        }
+      }
+    )
+  })
+}
+
+const updateData = async() => {
+    const { data:createdata, status:createstatus } = await axios.get(
+      'http://localhost:8080/forum/getForumByUserId',
+      {
+        params:{
+          userId:props.userId
+        },
+        validateStatus: () => true
+      })
+      if(createstatus == 200){
+        allPost.value=createdata.forumList
+      } 
+}
+
+onBeforeMount( async () => {
+
+    await waitForPost()
+    const { data:createdata, status:createstatus } = await axios.get(
+      'http://localhost:8080/forum/getForumByUserId',
+      {
+        params:{
+          userId:props.userId
+        },
+        validateStatus: () => true
+      })
+      if(createstatus == 200){
+        allPost.value=createdata.forumList
+      }
+
+})
 
 </script>
 
@@ -187,7 +272,14 @@ const getImageUrl = (imageName) => {
 }
 
 .changeMessage {
-    margin-left: 500px;
+    margin-left: 400px;
+    margin-top:-85px;
+    height: 40px;
+    width: 100px;
+}
+
+.gotoPage{
+    margin-left: 20px;
     margin-top:-85px;
     height: 40px;
     width: 100px;
